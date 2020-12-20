@@ -13,7 +13,7 @@ class GraphLibTest(parameterized.TestCase, absltest.TestCase):
         ('Prov. 22:1 (1-3); 23:2; 24:3 (3-5)',
          ['Prov. 22:1', 'Prov. 23:2', 'Prov. 24:3']),
         ('Isa. 42:1 (1, 3-4)', ['Isa. 42:1']),
-        ('D&C 13.', ['D&C 13']),
+        ('D&C 13.', ['D&C 13:1']),
         ('Prov. 22:1; 23:2 (2-4); Mosiah 1:2; 3 Ne. 5:6 (6-8)',
          ['Prov. 22:1', 'Prov. 23:2', 'Mosiah 1:2', '3 Ne. 5:6']),
         ('TG Birthright.', ['TG Birthright']),
