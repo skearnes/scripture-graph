@@ -125,6 +125,8 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
             data = io.BytesIO(archive.read(info))
             tree = etree.parse(data, parser=etree.HTMLParser())
             this_verses, this_references = read_tree(tree)
+            logging.info(f'Found {len(this_verses)} verses and '
+                         f'{len(this_references)} references')
             verses.update(this_verses)
             references.extend(this_references)
     return verses, references
@@ -196,7 +198,7 @@ def parse_reference(text: str) -> List[str]:
     # NOTE(kearnes): Verse ranges are excluded from the tail when creating
     # edges in the graph.
     matches = re.findall(
-        r'((?:\d\s)?(?:[\w&]+\s?)+\.?)\s'
+        r'(\d*\s?[\w\s&]+\.?)\s'
         r'((?:\d+:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:;\s)?)+)', text)
     for match in matches:
         for chapter_verse in match[1].split(';'):
@@ -207,6 +209,7 @@ def parse_reference(text: str) -> List[str]:
     if match:
         for topic in match.group(1).split(';'):
             tails.append(f'TG {topic.strip()}')
-    if not tails:
+    allowed = ('BD', 'HEB', 'IE', 'See the', 'Comparison with', 'The Greek')
+    if not tails and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
     return tails
