@@ -168,7 +168,7 @@ def read_tree(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
             # NOTE(kearnes): Most (but not all) references have the
             # "scriptureRef" class. This ambiguity means we have to resort to
             # regexes instead of simply walking through the tree.
-            if 'class' not in element.attrib:
+            if element.tag == 'p' and 'class' not in element.attrib:
                 tails.extend(parse_reference(''.join(element.itertext())))
         head = f'{book_short} {chapter}:{verse}'
         for tail in tails:
@@ -203,7 +203,7 @@ def parse_reference(text: str) -> List[str]:
             if not chapter_verse.strip():
                 continue
             tails.append(f'{match[0]} {chapter_verse.split()[0]}')
-    match = re.search(r'TG\s((?:(?:\w+,?(?:\s\w+)*)(?:;\s)?)+)', text)
+    match = re.search(r'TG\s((?:(?:[\w\s]+,?[\w\s]*)(?:;\s)?)+)', text)
     if match:
         for topic in match.group(1).split(';'):
             tails.append(f'TG {topic.strip()}')
