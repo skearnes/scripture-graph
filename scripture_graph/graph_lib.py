@@ -203,7 +203,7 @@ def parse_reference(text: str) -> List[str]:
             if not chapter_verse.strip():
                 continue
             tails.append(f'{match[0]} {chapter_verse.split()[0]}')
-    match = re.search(r'TG\s((?:\w+(?:;\s)?)+)', text)
+    match = re.search(r'TG\s((?:(?:\w+,?(?:\s\w+)*)(?:;\s)?)+)', text)
     if match:
         for topic in match.group(1).split(';'):
             tails.append(f'TG {topic.strip()}')
