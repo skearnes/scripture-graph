@@ -15,6 +15,7 @@ class GraphLibTest(parameterized.TestCase, absltest.TestCase):
         ('Prov. 22:1; 23:2 (2-4); Mosiah 1:2; 3 Ne. 5:6 (6-8)',
          ['Prov. 22:1', 'Prov. 23:2', 'Mosiah 1:2', '3 Ne. 5:6']),
         ('TG Birthright.', ['TG Birthright']),
+        ('TG Kingdom of God, on Earth.', ['TG Kingdom of God, on Earth']),
         ('Prov. 22:1. TG Affliction; Blessing.',
          ['Prov. 22:1', 'TG Affliction', 'TG Blessing']),
         ('TG God, Gifts of; Record Keeping',
