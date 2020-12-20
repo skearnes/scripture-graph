@@ -129,6 +129,7 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
                          f'{len(this_references)} references')
             verses.update(this_verses)
             references.extend(this_references)
+    logging.info(f'Found {len(verses)} verses and {len(references)} references')
     return verses, references
 
 
@@ -197,6 +198,11 @@ def parse_reference(text: str) -> List[str]:
     #
     # NOTE(kearnes): Verse ranges are excluded from the tail when creating
     # edges in the graph.
+    replacements = {
+        'D&C 13': 'D&C 13:1',
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
     matches = re.findall(
         r'(\d*\s?[\w\s&]+\.?)\s'
         r'((?:\d+:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:;\s)?)+)', text)
@@ -209,7 +215,17 @@ def parse_reference(text: str) -> List[str]:
     if match:
         for topic in match.group(1).split(';'):
             tails.append(f'TG {topic.strip()}')
-    allowed = ('BD', 'HEB', 'IE', 'See the', 'Comparison with', 'The Greek')
+    allowed = (
+        'BD',
+        'HEB',
+        'IE',
+        'See ',
+        'Comparison with',
+        'The Greek',
+        'Gnolaum is',
+        'His great career',
+        'The Hebrew',
+    )
     if not tails and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
     return tails
