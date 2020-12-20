@@ -2,6 +2,7 @@
 
 import dataclasses
 import io
+import os
 import re
 from typing import Dict, List, Tuple
 import zipfile
@@ -124,7 +125,15 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
             logging.info(info.filename)
             data = io.BytesIO(archive.read(info))
             tree = etree.parse(data, parser=etree.HTMLParser())
-            this_verses, this_references = read_tree(tree)
+            basename = os.path.basename(info.filename)
+            if basename.startswith('bd_'):
+                continue
+            elif basename.startswith('tg_'):
+                continue
+            elif basename.startswith('triple-index_'):
+                continue
+            else:
+                this_verses, this_references = read_tree(tree)
             logging.info(f'Found {len(this_verses)} verses and '
                          f'{len(this_references)} references')
             verses.update(this_verses)
@@ -199,7 +208,8 @@ def parse_reference(text: str) -> List[str]:
     # NOTE(kearnes): Verse ranges are excluded from the tail when creating
     # edges in the graph.
     replacements = {
-        'D&C 13': 'D&C 13:1',
+        'D&C 13.': 'D&C 13:1.',
+        'D&C 74.': 'D&C 74:1 (1-7).'
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
@@ -216,15 +226,13 @@ def parse_reference(text: str) -> List[str]:
         for topic in match.group(1).split(';'):
             tails.append(f'TG {topic.strip()}')
     allowed = (
-        'BD',
-        'HEB',
-        'IE',
-        'See ',
-        'Comparison with',
-        'The Greek',
-        'Gnolaum is',
-        'His great career',
-        'The Hebrew',
+        'BD', 'HEB', 'IE', 'See ', 'Comparison', 'The', 'Gnolaum', 'His', 'OR',
+        'Bath-shua', 'GR', 'Aramaic', 'Septuagint', 'It', 'Greek', 'In', 'What',
+        'This', 'More', 'Joab', 'Persian', 'According', 'Some', 'Hebrew',
+        'Samaritan', 'Variant', 'A ', 'Probably', 'All ', 'Progress', '“',
+        'Beginning', 'Isaiah chapters', 'Arabian', 'Despite', 'Israel',
+        'Possibly', 'Here', 'Several', 'Rabbinical', 'Other', 'Many', 'Syriac',
+        'Dogs', 'Wisdom', 'Implying'
     )
     if not tails and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
