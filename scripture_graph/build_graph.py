@@ -1,3 +1,16 @@
+# Copyright 2020 Steven Kearnes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Builds a scripture graph."""
 
 import glob
@@ -19,9 +32,8 @@ def main(argv):
     for filename in glob.glob(FLAGS.input_pattern):
         logging.info(filename)
         this_verses, this_references = graph_lib.read_epub(filename)
-        logging.info(
-            f'Found {len(this_verses)} verses and'
-            f' {len(this_references)} references')
+        logging.info(f'Found {len(this_verses)} verses and'
+                     f' {len(this_references)} references')
         verses.update(this_verses)
         references.extend(this_references)
     logging.info(
