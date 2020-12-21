@@ -4,7 +4,7 @@ import dataclasses
 import io
 import os
 import re
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import zipfile
 
 from absl import logging
@@ -133,7 +133,7 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
             elif basename.startswith('triple-index_'):
                 continue
             else:
-                this_verses, this_references = read_tree(tree)
+                this_verses, this_references = read_verses(tree)
             logging.info(f'Found {len(this_verses)} verses and '
                          f'{len(this_references)} references')
             verses.update(this_verses)
@@ -142,17 +142,31 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
     return verses, references
 
 
-def read_tree(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
-    verses = {}
-    references = []
+def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
+    # Standard headers.
     headers = cssselect.CSSSelector('.runHead')(tree)
-    if not headers:
-        return verses, references  # Table of contents, etc.
-    book = list(headers[0].itertext())[0]
+    if headers:
+        book = list(headers[0].itertext())[0]
+    else:
+        headers = cssselect.CSSSelector('title')(tree)
+        if headers and headers[0].text.startswith(
+                'Doctrine and Covenants Section'):
+            book = 'Doctrine and Covenants'
+        else:
+            return None, None  # Table of contents, etc.
     book_short = BOOKS_SHORT[book]
     chapter = int(
         list(cssselect.CSSSelector('.titleNumber')(tree)[0].itertext())
         [0].split()[1])
+    return book_short, chapter
+
+
+def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
+    verses = {}
+    references = []
+    book, chapter = read_headers(tree)
+    if not book:
+        return verses, references
     for verse_element in cssselect.CSSSelector('.verse-first,.verse')(tree):
         verse = None
         for element in verse_element.iter():
@@ -163,11 +177,14 @@ def read_tree(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
                 element.clear()
         text = ''.join(verse_element.itertext())
         if not verse:
+            if text.startswith(
+                    ('After prayer',)  # D&C 102:34.
+            ):
+                continue
             raise ValueError(
-                'could not find verse number for {book_short} {chapter}: {text}'
-            )
-        key = f'{book_short} {chapter}:{verse}'
-        verses[key] = Verse(book=book_short,
+                f'could not find verse number for {book} {chapter}: {text}')
+        key = f'{book} {chapter}:{verse}'
+        verses[key] = Verse(book=book,
                             chapter=chapter,
                             verse=verse,
                             text=text)
@@ -182,7 +199,7 @@ def read_tree(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
             # regexes instead of simply walking through the tree.
             if element.tag == 'p' and 'class' not in element.attrib:
                 tails.extend(parse_reference(''.join(element.itertext())))
-        head = f'{book_short} {chapter}:{verse}'
+        head = f'{book} {chapter}:{verse}'
         for tail in tails:
             references.append(Reference(head=head, tail=tail))
     return verses, references
@@ -208,11 +225,12 @@ def parse_reference(text: str) -> List[str]:
     # NOTE(kearnes): Verse ranges are excluded from the tail when creating
     # edges in the graph.
     replacements = {
-        'D&C 13.': 'D&C 13:1.',
-        'D&C 74.': 'D&C 74:1 (1-7).'
+        r'D&C 13[\.;]': 'D&C 13:1',
+        r'D&C 74\.': 'D&C 74:1 (1-7).',
+        r'D&C 116[\.;]': 'D&C 116:1',
     }
-    for old, new in replacements.items():
-        text = text.replace(old, new)
+    for pattern, repl in replacements.items():
+        text = re.sub(pattern, repl, text)
     matches = re.findall(
         r'(\d*\s?[\w\s&]+\.?)\s'
         r'((?:\d+:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:;\s)?)+)', text)
@@ -232,7 +250,7 @@ def parse_reference(text: str) -> List[str]:
         'Samaritan', 'Variant', 'A ', 'Probably', 'All ', 'Progress', '“',
         'Beginning', 'Isaiah chapters', 'Arabian', 'Despite', 'Israel',
         'Possibly', 'Here', 'Several', 'Rabbinical', 'Other', 'Many', 'Syriac',
-        'Dogs', 'Wisdom', 'Implying'
+        'Dogs', 'Wisdom', 'Implying', 'Compare', 'An ',
     )
     if not tails and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
