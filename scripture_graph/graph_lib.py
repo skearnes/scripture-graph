@@ -149,16 +149,12 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
 
 
 def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
-    # Standard headers.
     headers = cssselect.CSSSelector('title')(tree)
-    if headers:
-        book = headers[0].text.split('Chapter')[0].split('Section')[0].strip()
-    else:
-        return None, None
+    book = headers[0].text.split('Chapter')[0].split('Section')[0].strip()
     book_short = BOOKS_SHORT[book]
     title_number = cssselect.CSSSelector('.titleNumber')(tree)
     if not title_number:
-        return None, None
+        return None, None  # Table of contents, etc.
     chapter = int(list(title_number[0].itertext())[0].split()[-1])
     return book_short, chapter
 
