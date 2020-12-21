@@ -97,6 +97,7 @@ BOOKS_SHORT = {
     'Articles of Faith': 'A of F',
     'Abraham': 'Abr.',
     'Joseph Smith—Matthew': 'JS—M',
+    'Joseph Smith—History': 'JS—H',
     'Moses': 'Moses',
 }
 
@@ -122,7 +123,6 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
         for info in archive.infolist():
             if not info.filename.endswith('.xhtml'):
                 continue
-            logging.info(info.filename)
             data = io.BytesIO(archive.read(info))
             tree = etree.parse(data, parser=etree.HTMLParser())
             basename = os.path.basename(info.filename)
@@ -132,7 +132,13 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
                 continue
             elif basename.startswith('triple-index_'):
                 continue
+            elif basename.startswith((
+                    'abr_fac', 'bofm', 'cover', 'dc-testament', 'history-',
+                    'od_', 'pgp', 'triple-', 'triple_'
+            )):
+                continue
             else:
+                logging.info(info.filename)
                 this_verses, this_references = read_verses(tree)
             logging.info(f'Found {len(this_verses)} verses and '
                          f'{len(this_references)} references')
@@ -144,20 +150,16 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
 
 def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
     # Standard headers.
-    headers = cssselect.CSSSelector('.runHead')(tree)
+    headers = cssselect.CSSSelector('title')(tree)
     if headers:
-        book = list(headers[0].itertext())[0]
+        book = headers[0].text.split('Chapter')[0].split('Section')[0].strip()
     else:
-        headers = cssselect.CSSSelector('title')(tree)
-        if headers and headers[0].text.startswith(
-                'Doctrine and Covenants Section'):
-            book = 'Doctrine and Covenants'
-        else:
-            return None, None  # Table of contents, etc.
+        return None, None
     book_short = BOOKS_SHORT[book]
-    chapter = int(
-        list(cssselect.CSSSelector('.titleNumber')(tree)[0].itertext())
-        [0].split()[1])
+    title_number = cssselect.CSSSelector('.titleNumber')(tree)
+    if not title_number:
+        return None, None
+    chapter = int(list(title_number[0].itertext())[0].split()[-1])
     return book_short, chapter
 
 
@@ -165,7 +167,7 @@ def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
     verses = {}
     references = []
     book, chapter = read_headers(tree)
-    if not book:
+    if not chapter:
         return verses, references
     for verse_element in cssselect.CSSSelector('.verse-first,.verse')(tree):
         verse = None
@@ -226,7 +228,6 @@ def parse_reference(text: str) -> List[str]:
     # edges in the graph.
     replacements = {
         r'D&C 13[\.;]': 'D&C 13:1',
-        r'D&C 74\.': 'D&C 74:1 (1-7).',
         r'D&C 116[\.;]': 'D&C 116:1',
     }
     for pattern, repl in replacements.items():
@@ -250,7 +251,8 @@ def parse_reference(text: str) -> List[str]:
         'Samaritan', 'Variant', 'A ', 'Probably', 'All ', 'Progress', '“',
         'Beginning', 'Isaiah chapters', 'Arabian', 'Despite', 'Israel',
         'Possibly', 'Here', 'Several', 'Rabbinical', 'Other', 'Many', 'Syriac',
-        'Dogs', 'Wisdom', 'Implying', 'Compare', 'An ',
+        'Dogs', 'Wisdom', 'Implying', 'Compare', 'An ', '4 Ne. heading',
+        'Mal. 3–4.', 'D&C 74.', 'Matt. 24.',
     )
     if not tails and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
