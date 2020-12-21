@@ -134,7 +134,8 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
                 continue
             elif basename.startswith((
                     'abr_fac', 'bofm', 'cover', 'dc-testament', 'history-',
-                    'od_', 'pgp', 'triple-', 'triple_'
+                    'od_', 'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-',
+                    'bible_', 'harmony.', 'jst', 'nt.', 'ot.', 'quad',
             )):
                 continue
             else:
@@ -144,13 +145,13 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
                          f'{len(this_references)} references')
             verses.update(this_verses)
             references.extend(this_references)
-    logging.info(f'Found {len(verses)} verses and {len(references)} references')
     return verses, references
 
 
 def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
     headers = cssselect.CSSSelector('title')(tree)
-    book = headers[0].text.split('Chapter')[0].split('Section')[0].strip()
+    book = headers[0].text.split('Chapter')[0].split('Section')[0].split(
+        'Psalm ')[0].strip()
     book_short = BOOKS_SHORT[book]
     title_number = cssselect.CSSSelector('.titleNumber')(tree)
     if not title_number:
