@@ -139,10 +139,11 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
             )):
                 continue
             else:
-                logging.info(info.filename)
                 this_verses, this_references = read_verses(tree)
-            logging.info(f'Found {len(this_verses)} verses and '
-                         f'{len(this_references)} references')
+            if not this_verses or not this_references:
+                logging.info(info.filename)
+                logging.info(f'Found {len(this_verses)} verses and '
+                             f'{len(this_references)} references')
             verses.update(this_verses)
             references.extend(this_references)
     return verses, references
