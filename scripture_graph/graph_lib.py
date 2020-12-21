@@ -1,3 +1,16 @@
+# Copyright 2020 Steven Kearnes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Utilities for parsing scriptures EPUB into verses and references."""
 
 import dataclasses
@@ -132,11 +145,10 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
                 continue
             elif basename.startswith('triple-index_'):
                 continue
-            elif basename.startswith((
-                    'abr_fac', 'bofm', 'cover', 'dc-testament', 'history-',
-                    'od_', 'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-',
-                    'bible_', 'harmony.', 'jst', 'nt.', 'ot.', 'quad',
-            )):
+            elif basename.startswith(
+                ('abr_fac', 'bofm', 'cover', 'dc-testament', 'history-', 'od_',
+                 'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-', 'bible_',
+                 'harmony.', 'jst', 'nt.', 'ot.', 'quad')):
                 continue
             else:
                 this_verses, this_references = read_verses(tree)
@@ -177,17 +189,13 @@ def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
                 element.clear()
         text = ''.join(verse_element.itertext())
         if not verse:
-            if text.startswith(
-                    ('After prayer',)  # D&C 102:34.
-            ):
+            if text.startswith(('After prayer', )  # D&C 102:34.
+                               ):
                 continue
             raise ValueError(
                 f'could not find verse number for {book} {chapter}: {text}')
         key = f'{book} {chapter}:{verse}'
-        verses[key] = Verse(book=book,
-                            chapter=chapter,
-                            verse=verse,
-                            text=text)
+        verses[key] = Verse(book=book, chapter=chapter, verse=verse, text=text)
     for reference_element in cssselect.CSSSelector('.listItem')(tree):
         verse = None
         tails = []
@@ -242,16 +250,15 @@ def parse_reference(text: str) -> List[str]:
     if match:
         for topic in match.group(1).split(';'):
             tails.append(f'TG {topic.strip()}')
-    allowed = (
-        'BD', 'HEB', 'IE', 'See ', 'Comparison', 'The', 'Gnolaum', 'His', 'OR',
-        'Bath-shua', 'GR', 'Aramaic', 'Septuagint', 'It', 'Greek', 'In', 'What',
-        'This', 'More', 'Joab', 'Persian', 'According', 'Some', 'Hebrew',
-        'Samaritan', 'Variant', 'A ', 'Probably', 'All ', 'Progress', '“',
-        'Beginning', 'Isaiah chapters', 'Arabian', 'Despite', 'Israel',
-        'Possibly', 'Here', 'Several', 'Rabbinical', 'Other', 'Many', 'Syriac',
-        'Dogs', 'Wisdom', 'Implying', 'Compare', 'An ', '4 Ne. heading',
-        'Mal. 3–4.', 'D&C 74.', 'Matt. 24.',
-    )
+    allowed = ('BD', 'HEB', 'IE', 'See ', 'Comparison', 'The', 'Gnolaum',
+               'His', 'OR', 'Bath-shua', 'GR', 'Aramaic', 'Septuagint', 'It',
+               'Greek', 'In', 'What', 'This', 'More', 'Joab', 'Persian',
+               'According', 'Some', 'Hebrew', 'Samaritan', 'Variant', 'A ',
+               'Probably', 'All ', 'Progress', '“', 'Beginning',
+               'Isaiah chapters', 'Arabian', 'Despite', 'Israel', 'Possibly',
+               'Here', 'Several', 'Rabbinical', 'Other', 'Many', 'Syriac',
+               'Dogs', 'Wisdom', 'Implying', 'Compare', 'An ', '4 Ne. heading',
+               'Mal. 3–4.', 'D&C 74.', 'Matt. 24.')
     if not tails and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
     return tails
