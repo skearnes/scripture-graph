@@ -24,7 +24,8 @@ from absl import logging
 from lxml import cssselect
 from lxml import etree
 
-BOOKS_SHORT = {
+# Short names for books (used in references).
+_BOOKS_SHORT = {
     '1 Chronicles': '1 Chr.',
     '1 Corinthians': '1 Cor.',
     '1 John': '1 Jn.',
@@ -117,6 +118,7 @@ BOOKS_SHORT = {
 
 @dataclasses.dataclass(frozen=True)
 class Verse:
+    """A single verse of scripture."""
     book: str
     chapter: int
     verse: int
@@ -125,11 +127,21 @@ class Verse:
 
 @dataclasses.dataclass(frozen=True)
 class Reference:
+    """A directed reference from one verse to another."""
     head: str
     tail: str
 
 
 def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
+    """Reads an EPUB archive and parses verses and references.
+
+    Args:
+        filename: EPUB filename.
+
+    Returns:
+        verses: Dict of `Verse`s keyed by the reference form (e.g. "1 Ne. 3:7").
+        references: List of `Reference`s.
+    """
     verses = {}
     references = []
     with zipfile.ZipFile(filename) as archive:
@@ -162,10 +174,16 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
 
 
 def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
+    """Finds the book and chapter for the given document.
+
+    Returns:
+        book: Short name of the book (or None if not found).
+        chapter: Chapter or section number (or None if not found).
+    """
     headers = cssselect.CSSSelector('title')(tree)
     book = headers[0].text.split('Chapter')[0].split('Section')[0].split(
         'Psalm ')[0].strip()
-    book_short = BOOKS_SHORT[book]
+    book_short = _BOOKS_SHORT[book]
     title_number = cssselect.CSSSelector('.titleNumber')(tree)
     if not title_number:
         return None, None  # Table of contents, etc.
@@ -174,6 +192,15 @@ def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
 
 
 def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
+    """Finds `Verse`s and `Reference`s in the current document.
+
+    Args:
+        tree: ElementTree.
+
+    Returns:
+        verses: Dict of `Verse`s keyed by the reference form (e.g. "1 Ne. 3:7").
+        references: List of `Reference`s.
+    """
     verses = {}
     references = []
     book, chapter = read_headers(tree)
@@ -214,24 +241,25 @@ def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
 
 
 def parse_reference(text: str) -> List[str]:
+    """Parses a single reference.
+
+    References have several forms:
+
+      * Scripture: "Gen. 10:6 (6-8)", where the range is optional.
+      * Study helps: "TG Adam".
+      * Other: Hebrew/Greek translations, etc.
+
+    Multiple references are separated by semicolons. This is a bit tricky
+    since TG references are given as e.g. "TG Affliction; Blessing" and
+    references in the same book are given as e.g. 1 Ne. 3:18; 5:4.
+
+    Scripture and TG references are separated by periods. This is ambiguous
+    since book names are often abbreviated.
+
+    Note that verse ranges are excluded from the tail when creating edges.
+    """
     tails = []
-    # References have several forms:
-    #
-    #   * Scripture: "Gen. 10:6 (6-8)", where the range is optional.
-    #   * Study helps: "TG Adam".
-    #   * Other: Hebrew/Greek translations, etc.
-    #
-    # Multiple references are separated by semicolons. This is a bit tricky
-    # since TG references are given as e.g. "TG Affliction; Blessing" and
-    # references in the same book are given as e.g. 1 Ne. 3:18; 5:4.
-    #
-    # Scripture and TG references are separated by periods. This is ambiguous
-    # since book names are often abbreviated.
-    #
-    # I think pattern matching on the full string is the only way to go.
-    #
-    # NOTE(kearnes): Verse ranges are excluded from the tail when creating
-    # edges in the graph.
+    # Some one-verse sections are referenced without verse numbers.
     replacements = {
         r'D&C 13[\.;]': 'D&C 13:1',
         r'D&C 116[\.;]': 'D&C 116:1',
@@ -250,6 +278,8 @@ def parse_reference(text: str) -> List[str]:
     if match:
         for topic in match.group(1).split(';'):
             tails.append(f'TG {topic.strip()}')
+    # NOTE(kearnes): This is a list of reference prefixes that don't fit the
+    # standard syntax and that I have manually checked for exclusion.
     allowed = ('BD', 'HEB', 'IE', 'See ', 'Comparison', 'The', 'Gnolaum',
                'His', 'OR', 'Bath-shua', 'GR', 'Aramaic', 'Septuagint', 'It',
                'Greek', 'In', 'What', 'This', 'More', 'Joab', 'Persian',
