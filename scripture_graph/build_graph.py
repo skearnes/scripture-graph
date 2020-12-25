@@ -11,7 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Builds a scripture graph."""
+"""Builds a scripture graph.
+
+Example usage:
+
+# Download Standard Works EPUB files.
+$ ../download_epub.sh
+# Generate a graph.
+$ python build_graph.py --input_pattern="*.epub"
+"""
 
 import glob
 
