@@ -153,17 +153,16 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
             basename = os.path.basename(info.filename)
             if basename.startswith('bd_'):
                 continue
-            elif basename.startswith('tg_'):
+            if basename.startswith('tg_'):
                 continue
-            elif basename.startswith('triple-index_'):
+            if basename.startswith('triple-index_'):
                 continue
-            elif basename.startswith(
+            if basename.startswith(
                 ('abr_fac', 'bofm', 'cover', 'dc-testament', 'history-', 'od_',
                  'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-', 'bible_',
                  'harmony.', 'jst', 'nt.', 'ot.', 'quad')):
                 continue
-            else:
-                this_verses, this_references = read_verses(tree)
+            this_verses, this_references = read_verses(tree)
             if not this_verses or not this_references:
                 logging.info(info.filename)
                 logging.info(f'Found {len(this_verses)} verses and '
