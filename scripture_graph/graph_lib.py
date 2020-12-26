@@ -194,8 +194,8 @@ def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
 
     Args:
         tree: ElementTree.
-        book: Short name of the book (or None if not found).
-        chapter: Chapter or section number (or None if not found).
+        book: Short name of the book.
+        chapter: Chapter or section number.
 
     Returns:
         Dict of `Verse`s keyed by the reference form (e.g. "1 Ne. 3:7").
@@ -225,8 +225,8 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
 
     Args:
         tree: ElementTree.
-        book: Short name of the book (or None if not found).
-        chapter: Chapter or section number (or None if not found).
+        book: Short name of the book.
+        chapter: Chapter or section number.
 
     Returns:
         List of `Reference`s.
@@ -278,7 +278,6 @@ def parse_reference(text: str) -> List[str]:
         r'D&C 13[\.;]': 'D&C 13:1',  # One-verse section.
         r'D&C 116[\.;]': 'D&C 116:1',  # One-verse section.
         u'\xa0': ' ',  # Non-breaking space.
-        '&#38;': '&',  # Decimal code ampersand.
         # Chapter references.
         'Lam. 1–5; ': '',
         'Heb. 11; ': '',
