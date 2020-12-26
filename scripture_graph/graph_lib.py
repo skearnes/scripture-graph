@@ -121,7 +121,6 @@ class Verse:
     book: str
     chapter: int
     verse: int
-    text: str
 
 
 @dataclasses.dataclass(frozen=True)
@@ -217,7 +216,7 @@ def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
             raise ValueError(
                 f'could not find verse number for {book} {chapter}: {text}')
         key = f'{book} {chapter}:{verse}'
-        verses[key] = Verse(book=book, chapter=chapter, verse=verse, text=text)
+        verses[key] = Verse(book=book, chapter=chapter, verse=verse)
     return verses
 
 
