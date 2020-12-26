@@ -20,7 +20,6 @@ import re
 from typing import Dict, List, Optional, Tuple
 import zipfile
 
-from absl import logging
 from lxml import cssselect
 from lxml import etree
 
@@ -162,9 +161,14 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
                  'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-', 'bible_',
                  'harmony.', 'jst', 'nt.', 'ot.', 'quad')):
                 continue
-            this_verses, this_references = read_verses(tree)
+            book, chapter = read_headers(tree)
+            if not chapter:
+                continue
+            this_verses = read_verses(tree, book, chapter)
             verses.update(this_verses)
-            references.extend(this_references)
+            if book == 'JS—H':
+                continue  # JS—H has no references.
+            references.extend(read_references(tree, book, chapter))
     return verses, references
 
 
@@ -186,21 +190,18 @@ def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
     return book_short, chapter
 
 
-def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
-    """Finds `Verse`s and `Reference`s in the current document.
+def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
+    """Finds `Verse`s in the current document.
 
     Args:
         tree: ElementTree.
+        book: Short name of the book (or None if not found).
+        chapter: Chapter or section number (or None if not found).
 
     Returns:
-        verses: Dict of `Verse`s keyed by the reference form (e.g. "1 Ne. 3:7").
-        references: List of `Reference`s.
+        Dict of `Verse`s keyed by the reference form (e.g. "1 Ne. 3:7").
     """
     verses = {}
-    references = []
-    book, chapter = read_headers(tree)
-    if not chapter:
-        return verses, references
     for verse_element in cssselect.CSSSelector('.verse-first,.verse')(tree):
         verse = None
         for element in verse_element.iter():
@@ -217,8 +218,21 @@ def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
                 f'could not find verse number for {book} {chapter}: {text}')
         key = f'{book} {chapter}:{verse}'
         verses[key] = Verse(book=book, chapter=chapter, verse=verse, text=text)
-    if book == 'JS—H':
-        return verses, references  # JS—H has no references.
+    return verses
+
+
+def read_references(tree, book: str, chapter: int) -> List[Reference]:
+    """Finds `Reference`s in the current document.
+
+    Args:
+        tree: ElementTree.
+        book: Short name of the book (or None if not found).
+        chapter: Chapter or section number (or None if not found).
+
+    Returns:
+        List of `Reference`s.
+    """
+    references = []
     # NOTE(kearnes): Verse numbers are not repeated for multiple references, so
     # we keep track of the current verse as we iterate.
     verse = None
@@ -239,7 +253,7 @@ def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
         head = f'{book} {chapter}:{verse}'
         for tail in tails:
             references.append(Reference(head=head, tail=tail))
-    return verses, references
+    return references
 
 
 def parse_reference(text: str) -> List[str]:
