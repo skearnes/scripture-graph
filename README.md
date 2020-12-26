@@ -16,5 +16,6 @@ python scripture_graph/build_graph.py --input_pattern="*.epub" --output=scriptur
 
 # Graph visualization
 
-Generated graphs can be visualized interactively with
-[Cytoscape](https://cytoscape.org).
+Generated graphs can be visualized interactively with various tools; see the
+[recommendations](https://networkx.org/documentation/stable/reference/drawing.html#drawing)
+from NetworkX.
