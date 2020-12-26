@@ -18,19 +18,22 @@ Example usage:
 # Download Standard Works EPUB files.
 $ ../download_epub.sh
 # Generate a graph.
-$ python build_graph.py --input_pattern="*.epub"
+$ python build_graph.py --input_pattern="*.epub" --output=scripture_graph.gml
 """
 
+import dataclasses
 import glob
 
 from absl import app
 from absl import flags
 from absl import logging
+import networkx as nx
 
 from scripture_graph import graph_lib
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string('input_pattern', None, 'Input EPUB pattern.')
+flags.DEFINE_string('output', None, 'Output graph filename.')
 
 
 def main(argv):
@@ -46,8 +49,21 @@ def main(argv):
         references.extend(this_references)
     logging.info(
         f'Found {len(verses)} verses and {len(references)} references')
+    graph = nx.DiGraph()
+    for key, verse in verses.items():
+        graph.add_node(key, **dataclasses.asdict(verse))
+    for reference in references:
+        if reference.tail.startswith('TG'):
+            continue  # Skip TG references for now (no nodes).
+        if reference.head not in verses:
+            raise KeyError(reference.head)
+        if reference.tail not in verses:
+            raise KeyError(reference.tail)
+        graph.add_edge(reference.head, reference.tail)
+    if FLAGS.output.endswith('.gml'):
+        nx.write_gml(graph, FLAGS.output)
 
 
 if __name__ == '__main__':
-    flags.mark_flag_as_required('input_pattern')
+    flags.mark_flags_as_required(['input_pattern', 'output'])
     app.run(main)

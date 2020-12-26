@@ -163,10 +163,6 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
                  'harmony.', 'jst', 'nt.', 'ot.', 'quad')):
                 continue
             this_verses, this_references = read_verses(tree)
-            if not this_verses or not this_references:
-                logging.info(info.filename)
-                logging.info(f'Found {len(this_verses)} verses and '
-                             f'{len(this_references)} references')
             verses.update(this_verses)
             references.extend(this_references)
     return verses, references
@@ -215,15 +211,18 @@ def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
                 element.clear()
         text = ''.join(verse_element.itertext())
         if not verse:
-            if text.startswith(('After prayer', )  # D&C 102:34.
-                               ):
-                continue
+            if text.startswith(('After prayer', )):
+                continue  # D&C 102:34.
             raise ValueError(
                 f'could not find verse number for {book} {chapter}: {text}')
         key = f'{book} {chapter}:{verse}'
         verses[key] = Verse(book=book, chapter=chapter, verse=verse, text=text)
+    if book == 'JS—H':
+        return verses, references  # JS—H has no references.
+    # NOTE(kearnes): Verse numbers are not repeated for multiple references, so
+    # we keep track of the current verse as we iterate.
+    verse = None
     for reference_element in cssselect.CSSSelector('.listItem')(tree):
-        verse = None
         tails = []
         for element in reference_element.iter():
             if element.get('class') == 'label-verse':
@@ -233,6 +232,10 @@ def read_verses(tree) -> Tuple[Dict[str, Verse], List[Reference]]:
             # regexes instead of simply walking through the tree.
             if element.tag == 'p' and 'class' not in element.attrib:
                 tails.extend(parse_reference(''.join(element.itertext())))
+        if not verse:
+            raise ValueError(
+                'could not find verse number for reference in '
+                f'{book} {chapter}: {"".join(reference_element.itertext())}')
         head = f'{book} {chapter}:{verse}'
         for tail in tails:
             references.append(Reference(head=head, tail=tail))
@@ -258,22 +261,37 @@ def parse_reference(text: str) -> List[str]:
     Note that verse ranges are excluded from the tail when creating edges.
     """
     tails = []
-    # Some one-verse sections are referenced without verse numbers.
     replacements = {
-        r'D&C 13[\.;]': 'D&C 13:1',
-        r'D&C 116[\.;]': 'D&C 116:1',
+        r'D&C 13[\.;]': 'D&C 13:1',  # One-verse section.
+        r'D&C 116[\.;]': 'D&C 116:1',  # One-verse section.
+        u'\xa0': ' ',  # Non-breaking space.
+        # Chapter references.
+        'Lam. 1–5; ': '',
+        'Heb. 11; ': '',
     }
     for pattern, repl in replacements.items():
         text = re.sub(pattern, repl, text)
     matches = re.findall(
-        r'(\d*\s?[\w\s&]+\.?)\s'
+        r'(\d*\s?[a-zA-Z\s&—]+\.?)\s'
         r'((?:\d+:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:;\s)?)+)', text)
+    # NOTE(kearnes): This is a list of reference prefixes that don't fit the
+    # standard syntax and that I have manually checked for exclusion.
+    skipped = ('See ', 'see ', 'Note ', 'note ', 'IE ', 'a land', 'Recall',
+               'in', 'The ', 'the ', 'also', 'and ', '7 and', 'Deuel',
+               'Details', 'as ', '20 and', '19 and', 'which ')
+    skipped += ('JST', )  # Skip JST references for now.
     for match in matches:
         for chapter_verse in match[1].split(';'):
             if not chapter_verse.strip():
                 continue
-            tails.append(f'{match[0]} {chapter_verse.split()[0]}')
-    match = re.search(r'TG\s((?:(?:[\w\s]+,?[\w\s]*)(?:;\s)?)+)', text)
+            book = match[0].strip()
+            if book not in _BOOKS_SHORT.values():
+                if not book.startswith(skipped):
+                    raise ValueError(
+                        f'unrecognized reference to book: "{book}" ({text})')
+                continue
+            tails.append(f'{book} {chapter_verse.split()[0]}')
+    match = re.search(r'TG\s((?:(?:[a-zA-Z\s]+,?[a-zA-Z\s]*)(?:;\s)?)+)', text)
     if match:
         for topic in match.group(1).split(';'):
             tails.append(f'TG {topic.strip()}')
@@ -286,8 +304,12 @@ def parse_reference(text: str) -> List[str]:
                'Probably', 'All ', 'Progress', '“', 'Beginning',
                'Isaiah chapters', 'Arabian', 'Despite', 'Israel', 'Possibly',
                'Here', 'Several', 'Rabbinical', 'Other', 'Many', 'Syriac',
-               'Dogs', 'Wisdom', 'Implying', 'Compare', 'An ', '4 Ne. heading',
-               'Mal. 3–4.', 'D&C 74.', 'Matt. 24.')
+               'Dogs', 'Wisdom', 'Implying', 'Compare', 'An ', '4 Ne. heading',
+               'Mal. 3–4.', 'D&C 74.', 'Matt. 24.', 'Apparently', 'Reference',
+               'Ezekiel', 'Do not', 'Grandson', 'Bel and', 'Jesus', 'Perhaps',
+               'Joseph')
+    allowed += skipped  # Skipped references often end up here again.
+    allowed += ('JST', )  # Skip JST references for now.
     if not tails and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
     return tails
