@@ -278,6 +278,7 @@ def parse_reference(text: str) -> List[str]:
         r'D&C 13[\.;]': 'D&C 13:1',  # One-verse section.
         r'D&C 116[\.;]': 'D&C 116:1',  # One-verse section.
         u'\xa0': ' ',  # Non-breaking space.
+        '&#38;': '&',  # Decimal code ampersand.
         # Chapter references.
         'Lam. 1–5; ': '',
         'Heb. 11; ': '',
