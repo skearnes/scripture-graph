@@ -18,7 +18,7 @@ Example usage:
 # Download Standard Works EPUB files.
 $ ../download_epub.sh
 # Generate a graph.
-$ python build_graph.py --input_pattern="*.epub" --output=scripture_graph.gml
+$ python build_graph.py --input_pattern="*.epub" --output=scripture_graph.graphml
 """
 
 import dataclasses
@@ -62,6 +62,10 @@ def main(argv):
         graph.add_edge(reference.head, reference.tail)
     if FLAGS.output.endswith('.gml'):
         nx.write_gml(graph, FLAGS.output)
+    elif FLAGS.output.endswith('.graphml'):
+        nx.write_graphml(graph, FLAGS.output)
+    else:
+        raise NotImplementedError(FLAGS.output)
 
 
 if __name__ == '__main__':

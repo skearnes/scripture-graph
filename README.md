@@ -11,7 +11,7 @@ python setup.py install
 # Download Standard Works EPUB files.
 ./download_epub.sh
 # Generate a graph.
-python scripture_graph/build_graph.py --input_pattern="*.epub" --output=scripture_graph.gml
+python scripture_graph/build_graph.py --input_pattern="*.epub" --output=scripture_graph.graphml
 ```
 
 # Graph visualization
