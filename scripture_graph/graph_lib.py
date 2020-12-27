@@ -133,7 +133,7 @@ VOLUMES = {
         '1 Ne.', '2 Ne.', 'Jacob', 'Enos', 'Jarom', 'Omni', 'W of M', 'Mosiah',
         'Alma', 'Hel.', '3 Ne.', '4 Ne.', 'Morm.', 'Ether', 'Moro.'
     ],
-    'Doctrine and Covenants': ['D&C', 'OD'],
+    'Doctrine and Covenants': ['D&C'],  # Note that 'OD' is excluded.
     'Pearl of Great Price': ['Moses', 'Abr.', 'JS—M', 'JS—H', 'A of F'],
     'Study Helps': ['BD', 'HC', 'JST', 'TG'],
 }
