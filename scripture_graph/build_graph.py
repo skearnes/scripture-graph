@@ -51,7 +51,8 @@ def main(argv):
         f'Found {len(verses)} verses and {len(references)} references')
     graph = nx.DiGraph()
     for key, verse in verses.items():
-        graph.add_node(key, **dataclasses.asdict(verse))
+        volume = graph_lib.get_volume(verse.book)
+        graph.add_node(key, volume=volume, **dataclasses.asdict(verse))
     for reference in references:
         if reference.tail.startswith('TG'):
             continue  # Skip TG references for now (no nodes).

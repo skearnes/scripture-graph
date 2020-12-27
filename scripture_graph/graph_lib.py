@@ -87,7 +87,7 @@ _BOOKS_SHORT = {
     'Revelation': 'Rev.',
     'Romans': 'Rom.',
     'Ruth': 'Ruth',
-    'Song of Solomon': 'Song',
+    'Song of Solomon': 'Song.',
     'Titus': 'Titus',
     'Zechariah': 'Zech.',
     'Zephaniah': 'Zeph.',
@@ -113,6 +113,38 @@ _BOOKS_SHORT = {
     'Joseph Smith—History': 'JS—H',
     'Moses': 'Moses',
 }
+
+# Volumes of scripture.
+VOLUMES = {
+    'Old Testament': [
+        'Gen.', 'Ex.', 'Lev.', 'Num.', 'Deut.', 'Josh.', 'Judg.', 'Ruth',
+        '1 Sam.', '2 Sam.', '1 Kgs.', '2 Kgs.', '1 Chr.', '2 Chr.', 'Ezra',
+        'Neh.', 'Esth.', 'Job', 'Ps.', 'Prov.', 'Eccl.', 'Song.', 'Isa.',
+        'Jer.', 'Lam.', 'Ezek.', 'Dan.', 'Hosea', 'Joel', 'Amos', 'Obad.',
+        'Jonah', 'Micah', 'Nahum', 'Hab.', 'Zeph.', 'Hag.', 'Zech.', 'Mal.'
+    ],
+    'New Testament': [
+        'Matt.', 'Mark', 'Luke', 'John', 'Acts', 'Rom.', '1 Cor.', '2 Cor.',
+        'Gal.', 'Eph.', 'Philip.', 'Col.', '1 Thes.', '2 Thes.', '1 Tim.',
+        '2 Tim.', 'Titus', 'Philem.', 'Heb.', 'James', '1 Pet.', '2 Pet.',
+        '1 Jn.', '2 Jn.', '3 Jn.', 'Jude', 'Rev.'
+    ],
+    'Book of Mormon': [
+        '1 Ne.', '2 Ne.', 'Jacob', 'Enos', 'Jarom', 'Omni', 'W of M', 'Mosiah',
+        'Alma', 'Hel.', '3 Ne.', '4 Ne.', 'Morm.', 'Ether', 'Moro.'
+    ],
+    'Doctrine and Covenants': ['D&C', 'OD'],
+    'Pearl of Great Price': ['Moses', 'Abr.', 'JS—M', 'JS—H', 'A of F'],
+    'Study Helps': ['BD', 'HC', 'JST', 'TG'],
+}
+
+
+def get_volume(book: str) -> str:
+    """Returns the containing volume for a book."""
+    for volume, books in VOLUMES.items():
+        if book in books:
+            return volume
+    raise ValueError(f'unrecognized book: {book}')
 
 
 @dataclasses.dataclass(frozen=True)
@@ -278,6 +310,7 @@ def parse_reference(text: str) -> List[str]:
         r'D&C 13[\.;]': 'D&C 13:1',  # One-verse section.
         r'D&C 116[\.;]': 'D&C 116:1',  # One-verse section.
         u'\xa0': ' ',  # Non-breaking space.
+        'Song ': 'Song. ',  # Inconsistent abbreviation.
         # Chapter references.
         'Lam. 1–5; ': '',
         'Heb. 11; ': '',
