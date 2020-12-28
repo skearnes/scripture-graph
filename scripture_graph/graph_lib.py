@@ -137,6 +137,13 @@ VOLUMES = {
     'Pearl of Great Price': ['Moses', 'Abr.', 'JS—M', 'JS—H', 'A of F'],
     'Study Helps': ['BD', 'HC', 'JST', 'TG'],
 }
+VOLUMES_SHORT = {
+    'Old Testament': 'OT',
+    'New Testament': 'NT',
+    'Book of Mormon': 'BoM',
+    'Doctrine and Covenants': 'D&C',
+    'Pearl of Great Price': 'PoGP',
+}
 
 
 def get_volume(book: str) -> str:
