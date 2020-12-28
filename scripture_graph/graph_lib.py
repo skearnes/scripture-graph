@@ -24,7 +24,7 @@ from lxml import cssselect
 from lxml import etree
 
 # Short names for books (used in references).
-_BOOKS_SHORT = {
+BOOKS_SHORT = {
     '1 Chronicles': '1 Chr.',
     '1 Corinthians': '1 Cor.',
     '1 John': '1 Jn.',
@@ -220,7 +220,7 @@ def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
     headers = cssselect.CSSSelector('title')(tree)
     book = headers[0].text.split('Chapter')[0].split('Section')[0].split(
         'Psalm ')[0].strip()
-    book_short = _BOOKS_SHORT[book]
+    book_short = BOOKS_SHORT[book]
     title_number = cssselect.CSSSelector('.titleNumber')(tree)
     if not title_number:
         return None, None  # Table of contents, etc.
@@ -344,7 +344,7 @@ def parse_reference(text: str) -> List[str]:
             if not chapter_verse.strip():
                 continue
             book = match[0].strip()
-            if book not in _BOOKS_SHORT.values():
+            if book not in BOOKS_SHORT.values():
                 if not book.startswith(skipped):
                     raise ValueError(
                         f'unrecognized reference to book: "{book}" ({text})')
