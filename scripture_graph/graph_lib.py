@@ -165,8 +165,8 @@ class Verse:
 @dataclasses.dataclass(frozen=True)
 class Reference:
     """A directed reference from one verse to another."""
-    tail: str  # The source.
-    head: str  # The target.
+    source: str
+    target: str
 
 
 def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
@@ -275,7 +275,7 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
     # we keep track of the current verse as we iterate.
     verse = None
     for reference_element in cssselect.CSSSelector('.listItem')(tree):
-        heads = []
+        targets = []
         for element in reference_element.iter():
             if element.get('class') == 'label-verse':
                 verse = int(list(element.itertext())[0])
@@ -283,14 +283,14 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
             # "scriptureRef" class. This ambiguity means we have to resort to
             # regexes instead of simply walking through the tree.
             if element.tag == 'p' and 'class' not in element.attrib:
-                heads.extend(parse_reference(''.join(element.itertext())))
+                targets.extend(parse_reference(''.join(element.itertext())))
         if not verse:
             raise ValueError(
                 'could not find verse number for reference in '
                 f'{book} {chapter}: {"".join(reference_element.itertext())}')
-        tail = f'{book} {chapter}:{verse}'
-        for head in heads:
-            references.append(Reference(tail=tail, head=head))
+        source = f'{book} {chapter}:{verse}'
+        for target in targets:
+            references.append(Reference(source=source, target=target))
     return references
 
 
@@ -310,15 +310,15 @@ def parse_reference(text: str) -> List[str]:
     Scripture and TG references are separated by periods. This is ambiguous
     since book names are often abbreviated.
 
-    Note that verse ranges are excluded from the head when creating edges.
+    Note that verse ranges are excluded from the target when creating edges.
 
     Args:
         text: Reference text to be parsed.
 
     Returns:
-        List of reference targets (heads).
+        List of reference targets.
     """
-    heads = []
+    targets = []
     replacements = {
         r'D&C 13[\.;]': 'D&C 13:1',  # One-verse section.
         r'D&C 116[\.;]': 'D&C 116:1',  # One-verse section.
@@ -349,11 +349,11 @@ def parse_reference(text: str) -> List[str]:
                     raise ValueError(
                         f'unrecognized reference to book: "{book}" ({text})')
                 continue
-            heads.append(f'{book} {chapter_verse.split()[0]}')
+            targets.append(f'{book} {chapter_verse.split()[0]}')
     match = re.search(r'TG\s((?:(?:[a-zA-Z\s]+,?[a-zA-Z\s]*)(?:;\s)?)+)', text)
     if match:
         for topic in match.group(1).split(';'):
-            heads.append(f'TG {topic.strip()}')
+            targets.append(f'TG {topic.strip()}')
     # NOTE(kearnes): This is a list of reference prefixes that don't fit the
     # standard syntax and that I have manually checked for exclusion.
     allowed = ('BD', 'HEB', 'IE', 'See ', 'Comparison', 'The', 'Gnolaum',
@@ -369,6 +369,6 @@ def parse_reference(text: str) -> List[str]:
                'Joseph')
     allowed += skipped  # Skipped references often end up here again.
     allowed += ('JST', )  # Skip JST references for now.
-    if not heads and not text.startswith(allowed):
+    if not targets and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
-    return heads
+    return targets

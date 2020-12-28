@@ -54,13 +54,13 @@ def main(argv):
         volume = graph_lib.get_volume(verse.book)
         graph.add_node(key, volume=volume, **dataclasses.asdict(verse))
     for reference in references:
-        if reference.head.startswith('TG'):
+        if reference.target.startswith('TG'):
             continue  # Skip TG references for now (no nodes).
-        if reference.tail not in verses:
-            raise KeyError(reference.tail)
-        if reference.head not in verses:
-            raise KeyError(reference.head)
-        graph.add_edge(reference.tail, reference.head)
+        if reference.source not in verses:
+            raise KeyError(reference.source)
+        if reference.target not in verses:
+            raise KeyError(reference.target)
+        graph.add_edge(reference.source, reference.target)
     if FLAGS.output.endswith('.gml'):
         nx.write_gml(graph, FLAGS.output)
     elif FLAGS.output.endswith('.graphml'):
