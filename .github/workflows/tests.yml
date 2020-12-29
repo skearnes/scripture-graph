@@ -21,6 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
       - name: Install scripture-graph
         run: |
           cd "${GITHUB_WORKSPACE}"
@@ -35,6 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
       - name: Install scripture-graph
         run: |
           cd "${GITHUB_WORKSPACE}"
@@ -62,6 +68,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
       - name: Run yapf
         run: |
           cd "${GITHUB_WORKSPACE}"
@@ -76,4 +85,3 @@ jobs:
           cd "${GITHUB_WORKSPACE}"
           pip install pylint
           pylint scripture_graph *.py
-        
