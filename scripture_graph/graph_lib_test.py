@@ -20,6 +20,7 @@ from scripture_graph import graph_lib
 
 
 class GraphLibTest(parameterized.TestCase, absltest.TestCase):
+
     @parameterized.parameters(
         ('Prov. 22:1.', ['Prov. 22:1']),
         ('Prov. 22:1 (1-3)', ['Prov. 22:1']),

@@ -250,7 +250,7 @@ def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
                 element.clear()
         text = ''.join(verse_element.itertext())
         if not verse:
-            if text.startswith(('After prayer', )):
+            if text.startswith(('After prayer',)):
                 continue  # D&C 102:34.
             raise ValueError(
                 f'could not find verse number for {book} {chapter}: {text}')
@@ -338,7 +338,7 @@ def parse_reference(text: str) -> List[str]:
     skipped = ('See ', 'see ', 'Note ', 'note ', 'IE ', 'a land', 'Recall',
                'in', 'The ', 'the ', 'also', 'and ', '7 and', 'Deuel',
                'Details', 'as ', '20 and', '19 and', 'which ')
-    skipped += ('JST', )  # Skip JST references for now.
+    skipped += ('JST',)  # Skip JST references for now.
     for match in matches:
         for chapter_verse in match[1].split(';'):
             if not chapter_verse.strip():
@@ -356,19 +356,18 @@ def parse_reference(text: str) -> List[str]:
             targets.append(f'TG {topic.strip()}')
     # NOTE(kearnes): This is a list of reference prefixes that don't fit the
     # standard syntax and that I have manually checked for exclusion.
-    allowed = ('BD', 'HEB', 'IE', 'See ', 'Comparison', 'The', 'Gnolaum',
-               'His', 'OR', 'Bath-shua', 'GR', 'Aramaic', 'Septuagint', 'It',
-               'Greek', 'In', 'What', 'This', 'More', 'Joab', 'Persian',
-               'According', 'Some', 'Hebrew', 'Samaritan', 'Variant', 'A ',
-               'Probably', 'All ', 'Progress', '“', 'Beginning',
-               'Isaiah chapters', 'Arabian', 'Despite', 'Israel', 'Possibly',
-               'Here', 'Several', 'Rabbinical', 'Other', 'Many', 'Syriac',
-               'Dogs', 'Wisdom', 'Implying', 'Compare', 'An ', '4 Ne. heading',
-               'Mal. 3–4.', 'D&C 74.', 'Matt. 24.', 'Apparently', 'Reference',
-               'Ezekiel', 'Do not', 'Grandson', 'Bel and', 'Jesus', 'Perhaps',
-               'Joseph')
+    allowed = ('BD', 'HEB', 'IE', 'See ', 'Comparison', 'The', 'Gnolaum', 'His',
+               'OR', 'Bath-shua', 'GR', 'Aramaic', 'Septuagint', 'It', 'Greek',
+               'In', 'What', 'This', 'More', 'Joab', 'Persian', 'According',
+               'Some', 'Hebrew', 'Samaritan', 'Variant', 'A ', 'Probably',
+               'All ', 'Progress', '“', 'Beginning', 'Isaiah chapters',
+               'Arabian', 'Despite', 'Israel', 'Possibly', 'Here', 'Several',
+               'Rabbinical', 'Other', 'Many', 'Syriac', 'Dogs', 'Wisdom',
+               'Implying', 'Compare', 'An ', '4 Ne. heading', 'Mal. 3–4.',
+               'D&C 74.', 'Matt. 24.', 'Apparently', 'Reference', 'Ezekiel',
+               'Do not', 'Grandson', 'Bel and', 'Jesus', 'Perhaps', 'Joseph')
     allowed += skipped  # Skipped references often end up here again.
-    allowed += ('JST', )  # Skip JST references for now.
+    allowed += ('JST',)  # Skip JST references for now.
     if not targets and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
     return targets
