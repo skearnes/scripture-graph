@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-wget https://media.ldscdn.org/epub/lds-scriptures/holy-bible/holy-bible-eng.epub
-wget https://media.ldscdn.org/epub/lds-scriptures/triple-combination/triple-combination-eng.epub
+set -ex
+find ./scripture_graph -name '*_test.py' -exec python {} \;

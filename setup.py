@@ -11,14 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Installation script."""
 
 from setuptools import find_packages
 from setuptools import setup
 
-
-def main():
-    setup(name='scripture-graph', packages=find_packages())
-
-
 if __name__ == '__main__':
-    main()
+    setup(name='scripture-graph', packages=find_packages())

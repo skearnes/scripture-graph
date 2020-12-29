@@ -18,7 +18,9 @@ Example usage:
 # Download Standard Works EPUB files.
 $ ../download_epub.sh
 # Generate a graph.
-$ python build_graph.py --input_pattern="*.epub" --output=scripture_graph.graphml
+$ python build_graph.py \
+    --input_pattern="*.epub" \
+    --output=scripture_graph.graphml
 """
 
 import dataclasses
@@ -47,8 +49,7 @@ def main(argv):
                      f' {len(this_references)} references')
         verses.update(this_verses)
         references.extend(this_references)
-    logging.info(
-        f'Found {len(verses)} verses and {len(references)} references')
+    logging.info(f'Found {len(verses)} verses and {len(references)} references')
     graph = nx.DiGraph()
     for key, verse in verses.items():
         volume = graph_lib.get_volume(verse.book)
