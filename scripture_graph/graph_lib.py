@@ -290,6 +290,9 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
                 f'{book} {chapter}: {"".join(reference_element.itertext())}')
         source = f'{book} {chapter}:{verse}'
         for target in targets:
+            if target == source:
+                # Should never happen; if it does it's a bug.
+                raise ValueError(f'self-reference: {source}')
             references.append(Reference(source=source, target=target))
     return references
 
@@ -331,7 +334,7 @@ def parse_reference(text: str) -> List[str]:
     for pattern, repl in replacements.items():
         text = re.sub(pattern, repl, text)
     matches = re.findall(
-        r'(\d*\s?[a-zA-Z\s&—]+\.?)\s'
+        r'((?:JST\s)?\d*\s?[a-zA-Z\s&—]+\.?)\s'
         r'((?:\d+:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:;\s)?)+)', text)
     # NOTE(kearnes): This is a list of reference prefixes that don't fit the
     # standard syntax and that I have manually checked for exclusion.
