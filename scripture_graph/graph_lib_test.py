@@ -38,7 +38,6 @@ class GraphLibTest(parameterized.TestCase, absltest.TestCase):
          ['TG God, Gifts of', 'TG Record Keeping']),
         ('Mosiah 1:2 (2-3); D&C 68:25 (25, 28). TG Honoring Father and Mother.',
          ['Mosiah 1:2', 'D&C 68:25', 'TG Honoring Father and Mother']),
-        ('JST 1 Chr. 21:15 (Appendix).', []),
     )
     def test_parse_reference(self, text, expected):
         self.assertCountEqual(graph_lib.parse_reference(text), expected)
