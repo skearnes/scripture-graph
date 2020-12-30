@@ -22,6 +22,7 @@ import zipfile
 
 from lxml import cssselect
 from lxml import etree
+import tqdm
 
 # Short names for books (used in references).
 BOOKS_SHORT = {
@@ -182,7 +183,7 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
     verses = {}
     references = []
     with zipfile.ZipFile(filename) as archive:
-        for info in archive.infolist():
+        for info in tqdm.tqdm(archive.infolist()):
             if not info.filename.endswith('.xhtml'):
                 continue
             data = io.BytesIO(archive.read(info))
