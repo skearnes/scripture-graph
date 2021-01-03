@@ -17,7 +17,7 @@ import dataclasses
 import io
 import os
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 import zipfile
 
 from lxml import cssselect
@@ -170,14 +170,24 @@ class Reference:
     target: str
 
 
-def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
-    """Reads an EPUB archive and parses verses and references.
+@dataclasses.dataclass(frozen=True)
+class Topic:
+    """A topic that cites many scriptures."""
+    source: str
+    title: str
+
+
+def read_epub(
+        filename: str
+) -> Tuple[Dict[str, Union[Topic, Verse]], List[Reference]]:
+    """Reads an EPUB archive and parses topics, verses, and references.
 
     Args:
         filename: EPUB filename.
 
     Returns:
-        verses: Dict of `Verse`s keyed by the reference form (e.g. "1 Ne. 3:7").
+        verses: Dict of `Verse`s and `Topic`s keyed by the reference form
+            (e.g. "1 Ne. 3:7" or "TG Aaron").
         references: List of `Reference`s.
     """
     verses = {}
@@ -192,6 +202,10 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
             if basename.startswith('bd_'):
                 continue
             if basename.startswith('tg_'):
+                topic = get_title(tree)
+                key = f'TG {topic}'
+                verses[key] = Topic(source='Topical Guide', title=topic)
+                references.extend(read_topic(tree, source=key))
                 continue
             if basename.startswith('triple-index_'):
                 continue
@@ -211,6 +225,13 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
     return verses, references
 
 
+def get_title(tree) -> str:
+    headers = cssselect.CSSSelector('title')(tree)
+    if len(headers) != 1:
+        raise ValueError(f'unexpected number of titles: {headers}')
+    return headers[0].text
+
+
 def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
     """Finds the book and chapter for the given document.
 
@@ -218,8 +239,8 @@ def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
         book: Short name of the book (or None if not found).
         chapter: Chapter or section number (or None if not found).
     """
-    headers = cssselect.CSSSelector('title')(tree)
-    book = headers[0].text.split('Chapter')[0].split('Section')[0].split(
+    title = get_title(tree)
+    book = title.split('Chapter')[0].split('Section')[0].split(
         'Psalm ')[0].strip()
     book_short = BOOKS_SHORT[book]
     title_number = cssselect.CSSSelector('.titleNumber')(tree)
@@ -375,3 +396,41 @@ def parse_reference(text: str) -> List[str]:
     if not targets and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
     return targets
+
+
+def read_topic(tree, source) -> List[Reference]:
+    """Parses a Topical Guide or Index section.
+
+    The reference format here is slightly different than that used in the
+    footnotes. For instance, multiple verses can be listed in a single entry
+    (example from TG Abase): Matt. 23:12 (Luke 14:11; D&C 101:42; 112:3).
+
+    The XHTML structure suggests that it might be easiest to remove the text
+    snippets and pass the entire entry list to parse_reference.
+    """
+    references = []
+    targets = []
+    # Parse the "see also" topic list.
+    for element in cssselect.CSSSelector('.title')(tree):
+        if element.get('tag') == 'p':
+            match = re.fullmatch(r'See also ([a-zA-z\[\].\s;])\.',
+                                 ''.join(element.itertext()))
+            for target in match.group(1).split(';'):
+                target = target.strip()
+                if not target.startswith(('BD',)):
+                    target = f'{source.split()[0]} {target}'
+                targets.append(target)
+    # Parse the entries.
+    entries = []
+    for reference_element in cssselect.CSSSelector('.entry')(tree):
+        for element in reference_element.iter():
+            if element.get('class') == 'locator':
+                text = ''.join(element.itertext()).strip()
+                if text.endswith(';'):
+                    text = text[:-1]
+                entries.append(text)
+    if entries:
+        targets.extend(parse_reference('; '.join(entries)))
+    for target in targets:
+        references.append(Reference(source=source, target=target))
+    return references
