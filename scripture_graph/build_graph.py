@@ -36,7 +36,6 @@ from scripture_graph import graph_lib
 FLAGS = flags.FLAGS
 flags.DEFINE_string('input_pattern', None, 'Input EPUB pattern.')
 flags.DEFINE_string('output', None, 'Output graph filename.')
-flags.DEFINE_boolean('topics', True, 'Whether to include topic nodes.')
 
 
 def main(argv):
@@ -51,22 +50,20 @@ def main(argv):
     graph = nx.DiGraph()
     for key, verse in scripture_graph.verses.items():
         volume = graph_lib.get_volume(verse.book)
-        graph.add_node(key, volume=volume, **dataclasses.asdict(verse))
-    if FLAGS.topics:
-        for key, topic in scripture_graph.topics.items():
-            volume = graph_lib.get_volume(topic.source)
-            graph.add_node(key, volume=volume, **dataclasses.asdict(topic))
-        references = graph_lib.correct_topic_references(
-            scripture_graph.verses.keys(), scripture_graph.topics.keys(),
-            scripture_graph.references)
-    else:
-        references = []
-        topic_books = tuple(graph_lib.VOLUMES['Study Helps'])
-        for reference in scripture_graph.references:
-            if reference.source.startswith(
-                    topic_books) or reference.target.startswith(topic_books):
-                continue
-            references.append(reference)
+        graph.add_node(key,
+                       kind='verse',
+                       volume=volume,
+                       **dataclasses.asdict(verse))
+    for key, topic in scripture_graph.topics.items():
+        volume = graph_lib.get_volume(topic.source)
+        graph.add_node(key,
+                       kind='topic',
+                       volume=volume,
+                       **dataclasses.asdict(topic))
+    references = graph_lib.correct_topic_references(
+        verses=scripture_graph.verses.keys(),
+        topics=scripture_graph.topics.keys(),
+        references=scripture_graph.references)
     for reference in references:
         if reference.source not in graph.nodes:
             raise KeyError(f'missing source for {reference}')
