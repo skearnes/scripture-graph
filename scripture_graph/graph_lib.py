@@ -135,7 +135,7 @@ VOLUMES = {
     ],
     'Doctrine and Covenants': ['D&C'],  # Note that 'OD' is excluded.
     'Pearl of Great Price': ['Moses', 'Abr.', 'JS—M', 'JS—H', 'A of F'],
-    'Study Helps': ['BD', 'HC', 'JST', 'TG'],
+    'Study Helps': ['BD', 'HC', 'JST', 'TG', 'IttTC'],
 }
 VOLUMES_SHORT = {
     'Old Testament': 'OT',
@@ -231,6 +231,10 @@ def read_epub(filename: str) -> ScriptureGraph:
                 graph.references.extend(read_topic(tree, source=key))
                 continue
             if basename.startswith('triple-index_'):
+                topic = get_title(tree)
+                key = f'IttTC {topic}'
+                graph.topics[key] = Topic(source='IttTC', title=topic)
+                graph.references.extend(read_topic(tree, source=key))
                 continue
             if basename.startswith(skipped):
                 continue
@@ -413,6 +417,15 @@ def parse_reference(text: str) -> List[str]:
                'Do not', 'Grandson', 'Bel and', 'Jesus', 'Perhaps', 'Joseph')
     allowed += skipped  # Skipped references often end up here again.
     allowed += ('JST',)  # Skip JST references for now.
+    # Add introductions for all D&C sections.
+    allowed += tuple(f'D&C {section}: Intro.' for section in range(1, 139))
+    allowed += ('OD 1', 'OD 2')
+    # Other manual fixes for IttTC.
+    allowed += ('3 Ne. 12–14; Matt. 5–7', 'D&C 2; 19; 22–23', 'D&C 22',
+                'D&C 51; D&C 54: Intro.; D&C 56: Intro.', 'D&C 61', 'D&C 77',
+                'D&C 89', 'D&C 100', 'D&C 108', 'D&C 111', 'D&C 116', 'D&C 121',
+                'D&C 125', 'D&C 130–31', 'D&C 136', 'D&C 138',
+                'Abr., fac. 2, fig. 2', 'Abr., fac. 3, fig. 6')
     if not targets and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
     return targets
@@ -442,7 +455,11 @@ def read_topic(tree, source) -> List[Reference]:
                 targets.append(target)
     # Parse the entries.
     entries = []
+    skipped = ('revelation received at', 'revelations received at',
+               'revelation designated as')
     for reference_element in cssselect.CSSSelector('.entry')(tree):
+        if ''.join(reference_element.itertext()).startswith(skipped):
+            continue
         for element in reference_element.iter():
             if element.get('class') == 'locator':
                 text = ''.join(element.itertext()).strip()
@@ -450,7 +467,10 @@ def read_topic(tree, source) -> List[Reference]:
                     text = text[:-1]
                 entries.append(text)
     if entries:
-        targets.extend(parse_reference('; '.join(entries)))
+        try:
+            targets.extend(parse_reference('; '.join(entries)))
+        except ValueError as error:
+            raise ValueError(source) from error
     for target in targets:
         references.append(Reference(source=source, target=target))
     return references
