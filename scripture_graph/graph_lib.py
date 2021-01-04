@@ -17,12 +17,12 @@ import dataclasses
 import io
 import os
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 import zipfile
 
+from absl import logging
 from lxml import cssselect
 from lxml import etree
-import tqdm
 
 # Short names for books (used in references).
 BOOKS_SHORT = {
@@ -136,7 +136,7 @@ VOLUMES = {
     ],
     'Doctrine and Covenants': ['D&C'],  # Note that 'OD' is excluded.
     'Pearl of Great Price': ['Moses', 'Abr.', 'JS—M', 'JS—H', 'A of F'],
-    'Study Helps': ['BD', 'HC', 'JST', 'TG'],
+    'Study Helps': ['BD', 'HC', 'JST', 'TG', 'IttTC'],
 }
 VOLUMES_SHORT = {
     'Old Testament': 'OT',
@@ -170,20 +170,54 @@ class Reference:
     target: str
 
 
-def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
-    """Reads an EPUB archive and parses verses and references.
+@dataclasses.dataclass(frozen=True)
+class Topic:
+    """A topic that cites many scriptures."""
+    source: str
+    title: str
+
+
+@dataclasses.dataclass
+class ScriptureGraph:
+    """A collection of verses, topics, and references.
+
+    Attributes:
+        verses: Dict of `Verse`s keyed by reference form (e.g. "1 Ne. 3:7").
+        topics: Dict of `Topic`s keyed by reference form (e.g. "TG Aaron").
+        references: List of `Reference`s.
+    """
+    verses: Dict[str, Verse] = dataclasses.field(default_factory=dict)
+    topics: Dict[str, Topic] = dataclasses.field(default_factory=dict)
+    references: List[Reference] = dataclasses.field(default_factory=list)
+
+    def update(self, other):
+        """Updates the current graph with `other`."""
+        self.verses.update(other.verses)
+        self.topics.update(other.topics)
+        self.references.extend(other.references)
+
+    def __repr__(self):
+        return ('ScriptureGraph:\n'
+                f'\t{len(self.verses)} verses\n'
+                f'\t{len(self.topics)} topics\n'
+                f'\t{len(self.references)} references')
+
+
+def read_epub(filename: str) -> ScriptureGraph:
+    """Reads an EPUB archive and parses topics, verses, and references.
 
     Args:
         filename: EPUB filename.
 
     Returns:
-        verses: Dict of `Verse`s keyed by the reference form (e.g. "1 Ne. 3:7").
-        references: List of `Reference`s.
+        ScriptureGraph.
     """
-    verses = {}
-    references = []
+    graph = ScriptureGraph()
+    skipped = ('abr_fac', 'bofm', 'cover', 'dc-testament', 'history-', 'od_',
+               'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-', 'bible_',
+               'harmony.', 'jst', 'nt.', 'ot.', 'quad')
     with zipfile.ZipFile(filename) as archive:
-        for info in tqdm.tqdm(archive.infolist()):
+        for info in archive.infolist():
             if not info.filename.endswith('.xhtml'):
                 continue
             data = io.BytesIO(archive.read(info))
@@ -192,23 +226,35 @@ def read_epub(filename: str) -> Tuple[Dict[str, Verse], List[Reference]]:
             if basename.startswith('bd_'):
                 continue
             if basename.startswith('tg_'):
+                topic = get_title(tree)
+                key = f'TG {topic}'
+                graph.topics[key] = Topic(source='TG', title=topic)
+                graph.references.extend(read_topic(tree, source=key))
                 continue
             if basename.startswith('triple-index_'):
+                topic = get_title(tree)
+                key = f'IttTC {topic}'
+                graph.topics[key] = Topic(source='IttTC', title=topic)
+                graph.references.extend(read_topic(tree, source=key))
                 continue
-            if basename.startswith(
-                ('abr_fac', 'bofm', 'cover', 'dc-testament', 'history-', 'od_',
-                 'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-', 'bible_',
-                 'harmony.', 'jst', 'nt.', 'ot.', 'quad')):
+            if basename.startswith(skipped):
                 continue
             book, chapter = read_headers(tree)
             if not chapter:
                 continue
-            this_verses = read_verses(tree, book, chapter)
-            verses.update(this_verses)
+            graph.verses.update(read_verses(tree, book, chapter))
             if book == 'JS—H':
                 continue  # JS—H has no references.
-            references.extend(read_references(tree, book, chapter))
-    return verses, references
+            graph.references.extend(read_references(tree, book, chapter))
+    return graph
+
+
+def get_title(tree) -> str:
+    """Extracts the title from an ElementTree."""
+    headers = cssselect.CSSSelector('title')(tree)
+    if len(headers) != 1:
+        raise ValueError(f'unexpected number of titles: {headers}')
+    return headers[0].text
 
 
 def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
@@ -218,8 +264,8 @@ def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
         book: Short name of the book (or None if not found).
         chapter: Chapter or section number (or None if not found).
     """
-    headers = cssselect.CSSSelector('title')(tree)
-    book = headers[0].text.split('Chapter')[0].split('Section')[0].split(
+    title = get_title(tree)
+    book = title.split('Chapter')[0].split('Section')[0].split(
         'Psalm ')[0].strip()
     book_short = BOOKS_SHORT[book]
     title_number = cssselect.CSSSelector('.titleNumber')(tree)
@@ -298,6 +344,7 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
     return references
 
 
+# pylint: disable=too-many-locals
 def parse_reference(text: str) -> List[str]:
     """Parses a single reference.
 
@@ -336,7 +383,7 @@ def parse_reference(text: str) -> List[str]:
         text = re.sub(pattern, repl, text)
     matches = re.findall(
         r'((?:JST\s)?\d*\s?[a-zA-Z\s&—]+\.?)\s'
-        r'((?:\d+:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:;\s)?)+)', text)
+        r'((?:\d+:(?:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:,\s)?)+(?:;\s)?)+)', text)
     # NOTE(kearnes): This is a list of reference prefixes that don't fit the
     # standard syntax and that I have manually checked for exclusion.
     skipped = ('See ', 'see ', 'Note ', 'note ', 'IE ', 'a land', 'Recall',
@@ -353,8 +400,12 @@ def parse_reference(text: str) -> List[str]:
                     raise ValueError(
                         f'unrecognized reference to book: "{book}" ({text})')
                 continue
-            targets.append(f'{book} {chapter_verse.split()[0]}')
-    match = re.search(r'TG\s((?:(?:[a-zA-Z\s]+,?[a-zA-Z\s]*)(?:;\s)?)+)', text)
+            chapter, verses = chapter_verse.split(':')
+            submatches = re.findall(r'(\d+)(?:\s\(\d+[-–,]\s?\d+\))?,?', verses)
+            for verse in submatches:
+                verse = verse.split()[0]  # Remove verse ranges.
+                targets.append(f'{book} {int(chapter)}:{int(verse)}')
+    match = re.search(r'TG\s((?:(?:[a-zA-Z\s,-]+)(?:;\s)?)+)', text)
     if match:
         for topic in match.group(1).split(';'):
             targets.append(f'TG {topic.strip()}')
@@ -372,6 +423,112 @@ def parse_reference(text: str) -> List[str]:
                'Do not', 'Grandson', 'Bel and', 'Jesus', 'Perhaps', 'Joseph')
     allowed += skipped  # Skipped references often end up here again.
     allowed += ('JST',)  # Skip JST references for now.
+    # Add introductions for all D&C sections.
+    allowed += tuple(f'D&C {section}: Intro.' for section in range(1, 139))
+    allowed += ('OD 1', 'OD 2')
+    # Other manual fixes for IttTC.
+    allowed += ('3 Ne. 12–14; Matt. 5–7', 'D&C 2; 19; 22–23', 'D&C 22',
+                'D&C 51; D&C 54: Intro.; D&C 56: Intro.', 'D&C 61', 'D&C 77',
+                'D&C 89', 'D&C 100', 'D&C 108', 'D&C 111', 'D&C 116', 'D&C 121',
+                'D&C 125', 'D&C 130–31', 'D&C 136', 'D&C 138',
+                'Abr., fac. 2, fig. 2', 'Abr., fac. 3, fig. 6')
     if not targets and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
     return targets
+
+
+def read_topic(tree, source) -> List[Reference]:
+    """Parses a Topical Guide or Index section.
+
+    The reference format here is slightly different than that used in the
+    footnotes. For instance, multiple verses can be listed in a single entry
+    (example from TG Abase): Matt. 23:12 (Luke 14:11; D&C 101:42; 112:3).
+
+    The XHTML structure suggests that it might be easiest to remove the text
+    snippets and pass the entire entry list to parse_reference.
+    """
+    references = []
+    targets = []
+    # Parse the "see also" topic list.
+    for element in cssselect.CSSSelector('.title')(tree):
+        if element.get('tag') == 'p':
+            match = re.fullmatch(r'See also ([a-zA-z\[\].\s;])\.',
+                                 ''.join(element.itertext()))
+            for target in match.group(1).split(';'):
+                target = target.strip()
+                if not target.startswith(('BD',)):
+                    target = f'{source.split()[0]} {target}'
+                targets.append(target)
+    # Parse the entries.
+    entries = []
+    skipped = ('revelation received at', 'revelations received at',
+               'revelation designated as')
+    for reference_element in cssselect.CSSSelector('.entry')(tree):
+        if ''.join(reference_element.itertext()).startswith(skipped):
+            continue
+        for element in reference_element.iter():
+            if element.get('class') == 'locator':
+                text = ''.join(element.itertext()).strip()
+                if text.endswith(';'):
+                    text = text[:-1]
+                entries.append(text)
+    if entries:
+        try:
+            targets.extend(parse_reference('; '.join(entries)))
+        except ValueError as error:
+            raise ValueError(source) from error
+    for target in targets:
+        references.append(Reference(source=source, target=target))
+    return references
+
+
+def correct_topic_references(
+        verses: Iterable[str], topics: Iterable[str],
+        references: Iterable[Reference]) -> List[Reference]:
+    """Corrects incomplete topic references.
+
+    For instance, 1 Chr. 10:13 references 'TG Transgress'. However, the actual
+    target is 'TG Transgress, Transgression'. Does not modify the original
+    references.
+
+    Args:
+        verses: List of defined verses.
+        topics: List of defined topics.
+        references: List of current `Reference`s.
+
+    Returns:
+        List of updated `Reference`s.
+    """
+    nodes = set(verses).union(topics)
+    updated_references = []
+    count = 0
+    for reference in references:
+        if reference.source not in nodes:
+            try:
+                source = _translate_topic(reference.source, topics)
+            except ValueError as error:
+                raise ValueError(reference) from error
+            count += 1
+        else:
+            source = reference.source
+        if reference.target not in nodes:
+            try:
+                target = _translate_topic(reference.target, topics)
+            except ValueError as error:
+                raise ValueError(reference) from error
+            count += 1
+        else:
+            target = reference.target
+        updated_references.append(Reference(source=source, target=target))
+    logging.info(f'made {count} topic translations')
+    return updated_references
+
+
+def _translate_topic(topic: str, topics: Iterable[str]) -> str:
+    """Translates an incomplete topic reference."""
+    short_topic = ' '.join(topic.split()[1:])  # Remove the book name.
+    for title in topics:
+        short_title = ' '.join(title.split()[1:])
+        if short_topic in short_title.split(', '):
+            return title
+    raise ValueError(f'no suitable translation for {topic}')
