@@ -33,6 +33,7 @@ class GraphLibTest(parameterized.TestCase, absltest.TestCase):
         ('TG Birthright.', ['TG Birthright']),
         ('TG Kingdom of God, on Earth.', ['TG Kingdom of God, on Earth']),
         ('TG Israel, Judah, People of.', ['TG Israel, Judah, People of']),
+        ('TG Self-mastery.', ['TG Self-mastery']),
         ('Prov. 22:1. TG Affliction; Blessing.',
          ['Prov. 22:1', 'TG Affliction', 'TG Blessing']),
         ('TG God, Gifts of; Record Keeping',
@@ -46,19 +47,30 @@ class GraphLibTest(parameterized.TestCase, absltest.TestCase):
     def test_parse_reference(self, text, expected):
         self.assertCountEqual(graph_lib.parse_reference(text), expected)
 
-    def test_correct_topic_references(self):
+    @parameterized.parameters(
+        (
+            ['TG Lot'],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Lot')],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Lot')],
+        ),
+        (
+            ['TG Lose, Lost'],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Lost')],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Lose, Lost')],
+        ),
+        (
+            ['TG Transgress, Transgression'],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Transgress')],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Transgress, Transgression')],
+        ),
+        (
+            ['TG Carnal Mind', 'TG Mind, Minded'],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Mind')],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Mind, Minded')],
+        ),
+    )
+    def test_correct_topic_references(self, topics, references, expected):
         verses = ['1 Ne. 3:7']
-        topics = ['TG Lose, Lost', 'TG Lot', 'TG Transgress, Transgression']
-        references = [
-            graph_lib.Reference('1 Ne. 3:7', 'TG Lost'),
-            graph_lib.Reference('1 Ne. 3:7', 'TG Lot'),
-            graph_lib.Reference('1 Ne. 3:7', 'TG Transgress'),
-        ]
-        expected = [
-            graph_lib.Reference('1 Ne. 3:7', 'TG Lose, Lost'),
-            graph_lib.Reference('1 Ne. 3:7', 'TG Lot'),
-            graph_lib.Reference('1 Ne. 3:7', 'TG Transgress, Transgression'),
-        ]
         self.assertCountEqual(
             graph_lib.correct_topic_references(verses, topics, references),
             expected)

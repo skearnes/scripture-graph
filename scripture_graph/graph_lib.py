@@ -404,7 +404,7 @@ def parse_reference(text: str) -> List[str]:
             for verse in submatches:
                 verse = verse.split()[0]  # Remove verse ranges.
                 targets.append(f'{book} {int(chapter)}:{int(verse)}')
-    match = re.search(r'TG\s((?:(?:[a-zA-Z\s]+,?[a-zA-Z\s]*)(?:;\s)?)+)', text)
+    match = re.search(r'TG\s((?:(?:[a-zA-Z\s,-]+)(?:;\s)?)+)', text)
     if match:
         for topic in match.group(1).split(';'):
             targets.append(f'TG {topic.strip()}')
@@ -500,13 +500,14 @@ def correct_topic_references(
     """
     nodes = set(verses).union(topics)
     updated_references = []
+    count = 0
     for reference in references:
         if reference.source not in nodes:
             try:
                 source = _translate_topic(reference.source, topics)
             except ValueError as error:
                 raise ValueError(reference) from error
-            logging.info(f'{reference.source} -> {source}')
+            count += 1
         else:
             source = reference.source
         if reference.target not in nodes:
@@ -514,10 +515,11 @@ def correct_topic_references(
                 target = _translate_topic(reference.target, topics)
             except ValueError as error:
                 raise ValueError(reference) from error
-            logging.info(f'{reference.target} -> {target}')
+            count += 1
         else:
             target = reference.target
         updated_references.append(Reference(source=source, target=target))
+    logging.info(f'made {count} topic translations')
     return updated_references
 
 
@@ -525,6 +527,7 @@ def _translate_topic(topic: str, topics: Iterable[str]) -> str:
     """Translates an incomplete topic reference."""
     short_topic = ' '.join(topic.split()[1:])  # Remove the book name.
     for title in topics:
-        if short_topic in title.replace(',', '').split():
+        short_title = ' '.join(title.split()[1:])
+        if short_topic in short_title.split(', '):
             return title
     raise ValueError(f'no suitable translation for {topic}')
