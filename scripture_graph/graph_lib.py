@@ -381,7 +381,7 @@ def parse_reference(text: str) -> List[str]:
         text = re.sub(pattern, repl, text)
     matches = re.findall(
         r'((?:JST\s)?\d*\s?[a-zA-Z\s&—]+\.?)\s'
-        r'((?:\d+:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:;\s)?)+)', text)
+        r'((?:\d+:(?:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:,\s)?)+(?:;\s)?)+)', text)
     # NOTE(kearnes): This is a list of reference prefixes that don't fit the
     # standard syntax and that I have manually checked for exclusion.
     skipped = ('See ', 'see ', 'Note ', 'note ', 'IE ', 'a land', 'Recall',
@@ -398,7 +398,11 @@ def parse_reference(text: str) -> List[str]:
                     raise ValueError(
                         f'unrecognized reference to book: "{book}" ({text})')
                 continue
-            targets.append(f'{book} {chapter_verse.split()[0]}')
+            chapter, verses = chapter_verse.split(':')
+            submatches = re.findall(r'(\d+)(?:\s\(\d+[-–,]\s?\d+\))?,?', verses)
+            for verse in submatches:
+                verse = verse.split()[0]  # Remove verse ranges.
+                targets.append(f'{book} {int(chapter)}:{int(verse)}')
     match = re.search(r'TG\s((?:(?:[a-zA-Z\s]+,?[a-zA-Z\s]*)(?:;\s)?)+)', text)
     if match:
         for topic in match.group(1).split(';'):
