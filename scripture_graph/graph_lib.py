@@ -177,21 +177,41 @@ class Topic:
     title: str
 
 
-def read_epub(
-        filename: str
-) -> Tuple[Dict[str, Union[Topic, Verse]], List[Reference]]:
+@dataclasses.dataclass
+class ScriptureGraph:
+    """A collection of verses, topics, and references.
+
+    Attributes:
+        verses: Dict of `Verse`s keyed by reference form (e.g. "1 Ne. 3:7").
+        topics: Dict of `Topic`s keyed by reference form (e.g. "TG Aaron").
+        references: List of `Reference`s.
+    """
+    verses: Dict[str, Verse] = dataclasses.field(default_factory=dict)
+    topics: Dict[str, Topic] = dataclasses.field(default_factory=dict)
+    references: List[Reference] = dataclasses.field(default_factory=list)
+
+    def update(self, other):
+        self.verses.update(other.verses)
+        self.topics.update(other.topics)
+        self.references.extend(other.references)
+
+    def __repr__(self):
+        return ('ScriptureGraph: '
+                f'{len(self.verses)} verses, '
+                f'{len(self.topics)} topics, '
+                f'{len(self.references)} references')
+
+
+def read_epub(filename: str) -> ScriptureGraph:
     """Reads an EPUB archive and parses topics, verses, and references.
 
     Args:
         filename: EPUB filename.
 
     Returns:
-        verses: Dict of `Verse`s and `Topic`s keyed by the reference form
-            (e.g. "1 Ne. 3:7" or "TG Aaron").
-        references: List of `Reference`s.
+        ScriptureGraph.
     """
-    verses = {}
-    references = []
+    graph = ScriptureGraph()
     with zipfile.ZipFile(filename) as archive:
         for info in tqdm.tqdm(archive.infolist()):
             if not info.filename.endswith('.xhtml'):
@@ -204,8 +224,8 @@ def read_epub(
             if basename.startswith('tg_'):
                 topic = get_title(tree)
                 key = f'TG {topic}'
-                verses[key] = Topic(source='Topical Guide', title=topic)
-                references.extend(read_topic(tree, source=key))
+                graph.topics[key] = Topic(source='TG', title=topic)
+                graph.references.extend(read_topic(tree, source=key))
                 continue
             if basename.startswith('triple-index_'):
                 continue
@@ -217,12 +237,11 @@ def read_epub(
             book, chapter = read_headers(tree)
             if not chapter:
                 continue
-            this_verses = read_verses(tree, book, chapter)
-            verses.update(this_verses)
+            graph.verses.update(read_verses(tree, book, chapter))
             if book == 'JS—H':
                 continue  # JS—H has no references.
-            references.extend(read_references(tree, book, chapter))
-    return verses, references
+            graph.references.extend(read_references(tree, book, chapter))
+    return graph
 
 
 def get_title(tree) -> str:
