@@ -17,12 +17,11 @@ import dataclasses
 import io
 import os
 import re
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 import zipfile
 
 from lxml import cssselect
 from lxml import etree
-import tqdm
 
 # Short names for books (used in references).
 BOOKS_SHORT = {
@@ -191,6 +190,7 @@ class ScriptureGraph:
     references: List[Reference] = dataclasses.field(default_factory=list)
 
     def update(self, other):
+        """Updates the current graph with `other`."""
         self.verses.update(other.verses)
         self.topics.update(other.topics)
         self.references.extend(other.references)
@@ -212,8 +212,11 @@ def read_epub(filename: str) -> ScriptureGraph:
         ScriptureGraph.
     """
     graph = ScriptureGraph()
+    skipped = ('abr_fac', 'bofm', 'cover', 'dc-testament', 'history-', 'od_',
+               'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-', 'bible_',
+               'harmony.', 'jst', 'nt.', 'ot.', 'quad')
     with zipfile.ZipFile(filename) as archive:
-        for info in tqdm.tqdm(archive.infolist()):
+        for info in archive.infolist():
             if not info.filename.endswith('.xhtml'):
                 continue
             data = io.BytesIO(archive.read(info))
@@ -229,10 +232,7 @@ def read_epub(filename: str) -> ScriptureGraph:
                 continue
             if basename.startswith('triple-index_'):
                 continue
-            if basename.startswith(
-                ('abr_fac', 'bofm', 'cover', 'dc-testament', 'history-', 'od_',
-                 'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-', 'bible_',
-                 'harmony.', 'jst', 'nt.', 'ot.', 'quad')):
+            if basename.startswith(skipped):
                 continue
             book, chapter = read_headers(tree)
             if not chapter:
@@ -245,6 +245,7 @@ def read_epub(filename: str) -> ScriptureGraph:
 
 
 def get_title(tree) -> str:
+    """Extracts the title from an ElementTree."""
     headers = cssselect.CSSSelector('title')(tree)
     if len(headers) != 1:
         raise ValueError(f'unexpected number of titles: {headers}')
