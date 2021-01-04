@@ -344,6 +344,7 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
     return references
 
 
+# pylint: disable=too-many-locals
 def parse_reference(text: str) -> List[str]:
     """Parses a single reference.
 
