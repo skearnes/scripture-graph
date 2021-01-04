@@ -17,9 +17,10 @@ import dataclasses
 import io
 import os
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 import zipfile
 
+from absl import logging
 from lxml import cssselect
 from lxml import etree
 
@@ -478,3 +479,52 @@ def read_topic(tree, source) -> List[Reference]:
     for target in targets:
         references.append(Reference(source=source, target=target))
     return references
+
+
+def correct_topic_references(
+        verses: Iterable[str], topics: Iterable[str],
+        references: Iterable[Reference]) -> List[Reference]:
+    """Corrects incomplete topic references.
+
+    For instance, 1 Chr. 10:13 references 'TG Transgress'. However, the actual
+    target is 'TG Transgress, Transgression'. Does not modify the original
+    references.
+
+    Args:
+        verses: List of defined verses.
+        topics: List of defined topics.
+        references: List of current `Reference`s.
+
+    Returns:
+        List of updated `Reference`s.
+    """
+    nodes = set(verses).union(topics)
+    updated_references = []
+    for reference in references:
+        if reference.source not in nodes:
+            try:
+                source = _translate_topic(reference.source, topics)
+            except ValueError as error:
+                raise ValueError(reference) from error
+            logging.info(f'{reference.source} -> {source}')
+        else:
+            source = reference.source
+        if reference.target not in nodes:
+            try:
+                target = _translate_topic(reference.target, topics)
+            except ValueError as error:
+                raise ValueError(reference) from error
+            logging.info(f'{reference.target} -> {target}')
+        else:
+            target = reference.target
+        updated_references.append(Reference(source=source, target=target))
+    return updated_references
+
+
+def _translate_topic(topic: str, topics: Iterable[str]) -> str:
+    """Translates an incomplete topic reference."""
+    short_topic = ' '.join(topic.split()[1:])  # Remove the book name.
+    for title in topics:
+        if short_topic in title.replace(',', '').split():
+            return title
+    raise ValueError(f'no suitable translation for {topic}')

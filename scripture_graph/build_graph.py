@@ -36,6 +36,7 @@ from scripture_graph import graph_lib
 FLAGS = flags.FLAGS
 flags.DEFINE_string('input_pattern', None, 'Input EPUB pattern.')
 flags.DEFINE_string('output', None, 'Output graph filename.')
+flags.DEFINE_boolean('topics', True, 'Whether to include topic nodes.')
 
 
 def main(argv):
@@ -51,16 +52,26 @@ def main(argv):
     for key, verse in scripture_graph.verses.items():
         volume = graph_lib.get_volume(verse.book)
         graph.add_node(key, volume=volume, **dataclasses.asdict(verse))
-    for key, topic in scripture_graph.topics.items():
-        volume = graph_lib.get_volume(topic.source)
-        graph.add_node(key, volume=volume, **dataclasses.asdict(topic))
-    for reference in scripture_graph.references:
-        if reference.target.startswith('TG'):
-            continue  # Skip TG references for now (no nodes).
+    if FLAGS.topics:
+        for key, topic in scripture_graph.topics.items():
+            volume = graph_lib.get_volume(topic.source)
+            graph.add_node(key, volume=volume, **dataclasses.asdict(topic))
+        references = graph_lib.correct_topic_references(
+            scripture_graph.verses.keys(), scripture_graph.topics.keys(),
+            scripture_graph.references)
+    else:
+        references = []
+        topic_books = tuple(graph_lib.VOLUMES['Study Helps'])
+        for reference in scripture_graph.references:
+            if reference.source.startswith(
+                    topic_books) or reference.target.startswith(topic_books):
+                continue
+            references.append(reference)
+    for reference in references:
         if reference.source not in graph.nodes:
-            raise KeyError(reference.source)
+            raise KeyError(f'missing source for {reference}')
         if reference.target not in graph.nodes:
-            raise KeyError(reference.target)
+            raise KeyError(f'missing target for {reference}')
         graph.add_edge(reference.source, reference.target)
     if FLAGS.output.endswith('.gml'):
         nx.write_gml(graph, FLAGS.output)

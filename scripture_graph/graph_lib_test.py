@@ -32,6 +32,7 @@ class GraphLibTest(parameterized.TestCase, absltest.TestCase):
          ['Prov. 22:1', 'Prov. 23:2', 'Mosiah 1:2', '3 Ne. 5:6']),
         ('TG Birthright.', ['TG Birthright']),
         ('TG Kingdom of God, on Earth.', ['TG Kingdom of God, on Earth']),
+        ('TG Israel, Judah, People of.', ['TG Israel, Judah, People of']),
         ('Prov. 22:1. TG Affliction; Blessing.',
          ['Prov. 22:1', 'TG Affliction', 'TG Blessing']),
         ('TG God, Gifts of; Record Keeping',
@@ -44,6 +45,23 @@ class GraphLibTest(parameterized.TestCase, absltest.TestCase):
     )
     def test_parse_reference(self, text, expected):
         self.assertCountEqual(graph_lib.parse_reference(text), expected)
+
+    def test_correct_topic_references(self):
+        verses = ['1 Ne. 3:7']
+        topics = ['TG Lose, Lost', 'TG Lot', 'TG Transgress, Transgression']
+        references = [
+            graph_lib.Reference('1 Ne. 3:7', 'TG Lost'),
+            graph_lib.Reference('1 Ne. 3:7', 'TG Lot'),
+            graph_lib.Reference('1 Ne. 3:7', 'TG Transgress'),
+        ]
+        expected = [
+            graph_lib.Reference('1 Ne. 3:7', 'TG Lose, Lost'),
+            graph_lib.Reference('1 Ne. 3:7', 'TG Lot'),
+            graph_lib.Reference('1 Ne. 3:7', 'TG Transgress, Transgression'),
+        ]
+        self.assertCountEqual(
+            graph_lib.correct_topic_references(verses, topics, references),
+            expected)
 
 
 if __name__ == '__main__':
