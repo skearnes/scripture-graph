@@ -196,10 +196,10 @@ class ScriptureGraph:
         self.references.extend(other.references)
 
     def __repr__(self):
-        return ('ScriptureGraph: '
-                f'{len(self.verses)} verses, '
-                f'{len(self.topics)} topics, '
-                f'{len(self.references)} references')
+        return ('ScriptureGraph:\n'
+                f'\t{len(self.verses)} verses\n'
+                f'\t{len(self.topics)} topics\n'
+                f'\t{len(self.references)} references')
 
 
 def read_epub(filename: str) -> ScriptureGraph:
