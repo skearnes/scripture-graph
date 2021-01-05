@@ -40,27 +40,35 @@ flags.DEFINE_string('output', None, 'Output graph filename.')
 
 def main(argv):
     del argv  # Only used by app.run().
-    verses = {}
-    references = []
+    scripture_graph = graph_lib.ScriptureGraph()
     for filename in glob.glob(FLAGS.input_pattern):
         logging.info(filename)
-        this_verses, this_references = graph_lib.read_epub(filename)
-        logging.info(f'Found {len(this_verses)} verses and'
-                     f' {len(this_references)} references')
-        verses.update(this_verses)
-        references.extend(this_references)
-    logging.info(f'Found {len(verses)} verses and {len(references)} references')
+        this_graph = graph_lib.read_epub(filename)
+        scripture_graph.update(this_graph)
+        logging.info(this_graph)
+    logging.info(scripture_graph)
     graph = nx.DiGraph()
-    for key, verse in verses.items():
+    for key, verse in scripture_graph.verses.items():
         volume = graph_lib.get_volume(verse.book)
-        graph.add_node(key, volume=volume, **dataclasses.asdict(verse))
+        graph.add_node(key,
+                       kind='verse',
+                       volume=volume,
+                       **dataclasses.asdict(verse))
+    for key, topic in scripture_graph.topics.items():
+        volume = graph_lib.get_volume(topic.source)
+        graph.add_node(key,
+                       kind='topic',
+                       volume=volume,
+                       **dataclasses.asdict(topic))
+    references = graph_lib.correct_topic_references(
+        verses=scripture_graph.verses.keys(),
+        topics=scripture_graph.topics.keys(),
+        references=scripture_graph.references)
     for reference in references:
-        if reference.target.startswith('TG'):
-            continue  # Skip TG references for now (no nodes).
-        if reference.source not in verses:
-            raise KeyError(reference.source)
-        if reference.target not in verses:
-            raise KeyError(reference.target)
+        if reference.source not in graph.nodes:
+            raise KeyError(f'missing source for {reference}')
+        if reference.target not in graph.nodes:
+            raise KeyError(f'missing target for {reference}')
         graph.add_edge(reference.source, reference.target)
     if FLAGS.output.endswith('.gml'):
         nx.write_gml(graph, FLAGS.output)

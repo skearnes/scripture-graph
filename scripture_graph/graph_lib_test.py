@@ -32,6 +32,8 @@ class GraphLibTest(parameterized.TestCase, absltest.TestCase):
          ['Prov. 22:1', 'Prov. 23:2', 'Mosiah 1:2', '3 Ne. 5:6']),
         ('TG Birthright.', ['TG Birthright']),
         ('TG Kingdom of God, on Earth.', ['TG Kingdom of God, on Earth']),
+        ('TG Israel, Judah, People of.', ['TG Israel, Judah, People of']),
+        ('TG Self-mastery.', ['TG Self-mastery']),
         ('Prov. 22:1. TG Affliction; Blessing.',
          ['Prov. 22:1', 'TG Affliction', 'TG Blessing']),
         ('TG God, Gifts of; Record Keeping',
@@ -39,9 +41,39 @@ class GraphLibTest(parameterized.TestCase, absltest.TestCase):
         ('Mosiah 1:2 (2-3); D&C 68:25 (25, 28). TG Honoring Father and Mother.',
          ['Mosiah 1:2', 'D&C 68:25', 'TG Honoring Father and Mother']),
         ('JST 1 Chr. 21:15 (Appendix).', []),
+        ('Neh. 11:16, 22 (22-34), 33',
+         ['Neh. 11:16', 'Neh. 11:22', 'Neh. 11:33']),
     )
     def test_parse_reference(self, text, expected):
         self.assertCountEqual(graph_lib.parse_reference(text), expected)
+
+    @parameterized.parameters(
+        (
+            ['TG Lot'],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Lot')],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Lot')],
+        ),
+        (
+            ['TG Lose, Lost'],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Lost')],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Lose, Lost')],
+        ),
+        (
+            ['TG Transgress, Transgression'],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Transgress')],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Transgress, Transgression')],
+        ),
+        (
+            ['TG Carnal Mind', 'TG Mind, Minded'],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Mind')],
+            [graph_lib.Reference('1 Ne. 3:7', 'TG Mind, Minded')],
+        ),
+    )
+    def test_correct_topic_references(self, topics, references, expected):
+        verses = ['1 Ne. 3:7']
+        self.assertCountEqual(
+            graph_lib.correct_topic_references(verses, topics, references),
+            expected)
 
 
 if __name__ == '__main__':
