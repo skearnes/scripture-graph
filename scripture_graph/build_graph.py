@@ -64,12 +64,19 @@ def main(argv):
         verses=scripture_graph.verses.keys(),
         topics=scripture_graph.topics.keys(),
         references=scripture_graph.references)
+    duplicated_edges = 0
     for reference in references:
         if reference.source not in graph.nodes:
             raise KeyError(f'missing source for {reference}')
         if reference.target not in graph.nodes:
             raise KeyError(f'missing target for {reference}')
-        graph.add_edge(reference.source, reference.target)
+        if (reference.source, reference.target) in graph.edges:
+            duplicated_edges += 1
+        else:
+            graph.add_edge(reference.source, reference.target)
+    if duplicated_edges:
+        logging.info(f'ignored {duplicated_edges} duplicated edges')
+    logging.info(nx.info(graph))
     if FLAGS.output.endswith('.gml'):
         nx.write_gml(graph, FLAGS.output)
     elif FLAGS.output.endswith('.graphml'):
