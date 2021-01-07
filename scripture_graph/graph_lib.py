@@ -451,14 +451,19 @@ def read_topic(tree, source) -> List[Reference]:
     targets = []
     # Parse the "see also" topic list.
     for element in cssselect.CSSSelector('.title')(tree):
-        if element.get('tag') == 'p':
-            match = re.fullmatch(r'See also ([a-zA-z\[\].\s;])\.',
-                                 ''.join(element.itertext()))
+        if element.tag == 'p':
+            text = ''.join(element.itertext())
+            text = re.sub(u'\xa0', ' ', text)
+            if text in ['Summary', 'Compare also']:
+                continue
+            match = re.fullmatch(r'See (?:also )?(.*?)\.?', text)
+            if not match:
+                raise ValueError(f'failed to parse topic references for {source}: "{text}"')
             for target in match.group(1).split(';'):
                 target = target.strip()
-                if not target.startswith(('BD',)):
-                    target = f'{source.split()[0]} {target}'
-                targets.append(target)
+                if target.startswith('BD'):
+                    continue
+                targets.append(f'{source.split()[0]} {target}')
     # Parse the entries.
     entries = []
     skipped = ('revelation received at', 'revelations received at',
@@ -478,6 +483,8 @@ def read_topic(tree, source) -> List[Reference]:
         except ValueError as error:
             raise ValueError(source) from error
     for target in targets:
+        if target.startswith('BD'):
+            raise ValueError(f'disallowed target for {source}: {target}')
         references.append(Reference(source=source, target=target))
     return references
 
