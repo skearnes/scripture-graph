@@ -449,21 +449,33 @@ def read_topic(tree, source) -> List[Reference]:
     """
     references = []
     targets = []
+    others = cssselect.CSSSelector('p.title')(tree)
+    # NOTE(kearnes): Some topics have "see also" topics, others have "see also"
+    # scriptures, and others have both or none. This is the best way I've come
+    # up with for distinguishing between "see also" topics and scriptures.
+    #
+    # Most topics don't have numbers in them; the ones that do are usually of
+    # the form "Mosiah2" (for the second "Mosiah" character).
+    other_pattern = re.compile(r'\s\d')
     # Parse the "see also" topic list.
-    for element in cssselect.CSSSelector('.title')(tree):
-        if element.tag == 'p':
-            text = ''.join(element.itertext())
-            text = re.sub(u'\xa0', ' ', text)
-            if text in ['Summary', 'Compare also']:
+    prefix = source.split()[0]
+    if others and not re.search(other_pattern, ''.join(others[0].itertext())):
+        text = ''.join(others[0].itertext())
+        text = re.sub(u'\xa0', ' ', text)
+        match = re.fullmatch(r'See (?:also )?(.*?)\.?', text)
+        if not match:
+            raise ValueError(f'failed to parse topic references for {source}: "{text}"')
+        for target in match.group(1).split(';'):
+            target = target.strip()
+            if target.startswith(('BD',)):
+                break  # Any topics following this one are also in the BD.
+            elif target.startswith('Bible Chronology in the appendix'):
                 continue
-            match = re.fullmatch(r'See (?:also )?(.*?)\.?', text)
-            if not match:
-                raise ValueError(f'failed to parse topic references for {source}: "{text}"')
-            for target in match.group(1).split(';'):
-                target = target.strip()
-                if target.startswith('BD'):
-                    continue
-                targets.append(f'{source.split()[0]} {target}')
+            if target.startswith('TG'):
+                prefix = 'TG'
+            if not target.startswith(prefix):
+                target = f'{prefix} {target}'
+            targets.append(target)
     # Parse the entries.
     entries = []
     skipped = ('revelation received at', 'revelations received at',
@@ -482,6 +494,15 @@ def read_topic(tree, source) -> List[Reference]:
             targets.extend(parse_reference('; '.join(entries)))
         except ValueError as error:
             raise ValueError(source) from error
+    # Parse the "see also" scripture list.
+    if others and re.search(other_pattern, ''.join(others[-1].itertext())):
+        text = ''.join(others[-1].itertext())
+        if text not in ['Summary', 'Compare also']:
+            match = re.fullmatch(r'See (?:also )?(.*?)\.?', text)
+            if not match:
+                raise ValueError(
+                    f'failed to parse extra references for {source}: "{text}"')
+            targets.extend(parse_reference(match.group(1)))
     for target in targets:
         if target.startswith('BD'):
             raise ValueError(f'disallowed target for {source}: {target}')
@@ -533,6 +554,18 @@ def correct_topic_references(
 
 def _translate_topic(topic: str, topics: Iterable[str]) -> str:
     """Translates an incomplete topic reference."""
+    manual = {
+        'TG Bear [verb]': 'TG Bear, Bare, Born, Borne [verb]',
+        'TG Light [adjective]': 'TG Light, Lighter [adjective]',
+        'TG Close': 'TG Close [verb]',
+        'IttTC Work [noun]': 'IttTC Work, Works [noun]',
+        'IttTC Meet [verb]': 'IttTC Meet, Met, Meeting',
+        'IttTC Bear [verb]': 'IttTC Bear, Bore, Borne',
+        'IttTC Spirit, Holy': 'IttTC Spirit, Holy/Spirit of the Lord',
+        'IttTC Shiblom1': 'IttTC Shiblom1 [or Shiblon]',
+    }
+    if topic in manual:
+        return manual[topic]
     short_topic = ' '.join(topic.split()[1:])  # Remove the book name.
     for title in topics:
         short_title = ' '.join(title.split()[1:])
