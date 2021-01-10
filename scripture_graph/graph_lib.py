@@ -464,7 +464,8 @@ def read_topic(tree, source) -> List[Reference]:
         text = re.sub(u'\xa0', ' ', text)
         match = re.fullmatch(r'See (?:also )?(.*?)\.?', text)
         if not match:
-            raise ValueError(f'failed to parse topic references for {source}: "{text}"')
+            raise ValueError(
+                f'failed to parse topic references for {source}: "{text}"')
         for target in match.group(1).split(';'):
             target = target.strip()
             if target.startswith(('BD',)):
