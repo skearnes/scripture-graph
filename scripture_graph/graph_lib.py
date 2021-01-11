@@ -24,6 +24,9 @@ from absl import logging
 from lxml import cssselect
 from lxml import etree
 
+# pylint: disable=too-many-branches
+# pylint: disable=too-many-locals
+
 # Short names for books (used in references).
 BOOKS_SHORT = {
     '1 Chronicles': '1 Chr.',
@@ -344,7 +347,6 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
     return references
 
 
-# pylint: disable=too-many-locals
 def parse_reference(text: str) -> List[str]:
     """Parses a single reference.
 
@@ -470,7 +472,7 @@ def read_topic(tree, source) -> List[Reference]:
             target = target.strip()
             if target.startswith(('BD',)):
                 break  # Any topics following this one are also in the BD.
-            elif target.startswith('Bible Chronology in the appendix'):
+            if target.startswith('Bible Chronology in the appendix'):
                 continue
             if target.startswith('TG'):
                 prefix = 'TG'
