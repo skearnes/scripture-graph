@@ -139,7 +139,7 @@ VOLUMES = {
     ],
     'Doctrine and Covenants': ['D&C'],  # Note that 'OD' is excluded.
     'Pearl of Great Price': ['Moses', 'Abr.', 'JS—M', 'JS—H', 'A of F'],
-    'Study Helps': ['BD', 'HC', 'JST', 'TG', 'IttTC'],
+    'Study Helps': ['BD', 'HC', 'JST', 'TG', 'ITC'],
 }
 VOLUMES_SHORT = {
     'Old Testament': 'OT',
@@ -236,8 +236,8 @@ def read_epub(filename: str) -> ScriptureGraph:
                 continue
             if basename.startswith('triple-index_'):
                 topic = get_title(tree)
-                key = f'IttTC {topic}'
-                graph.topics[key] = Topic(source='IttTC', title=topic)
+                key = f'ITC {topic}'
+                graph.topics[key] = Topic(source='ITC', title=topic)
                 graph.references.extend(read_topic(tree, source=key))
                 continue
             if basename.startswith(skipped):
@@ -428,7 +428,7 @@ def parse_reference(text: str) -> List[str]:
     # Add introductions for all D&C sections.
     allowed += tuple(f'D&C {section}: Intro.' for section in range(1, 139))
     allowed += ('OD 1', 'OD 2')
-    # Other manual fixes for IttTC.
+    # Other manual fixes for ITC.
     allowed += ('3 Ne. 12–14; Matt. 5–7', 'D&C 2; 19; 22–23', 'D&C 22',
                 'D&C 51; D&C 54: Intro.; D&C 56: Intro.', 'D&C 61', 'D&C 77',
                 'D&C 89', 'D&C 100', 'D&C 108', 'D&C 111', 'D&C 116', 'D&C 121',
@@ -561,11 +561,11 @@ def _translate_topic(topic: str, topics: Iterable[str]) -> str:
         'TG Bear [verb]': 'TG Bear, Bare, Born, Borne [verb]',
         'TG Light [adjective]': 'TG Light, Lighter [adjective]',
         'TG Close': 'TG Close [verb]',
-        'IttTC Work [noun]': 'IttTC Work, Works [noun]',
-        'IttTC Meet [verb]': 'IttTC Meet, Met, Meeting',
-        'IttTC Bear [verb]': 'IttTC Bear, Bore, Borne',
-        'IttTC Spirit, Holy': 'IttTC Spirit, Holy/Spirit of the Lord',
-        'IttTC Shiblom1': 'IttTC Shiblom1 [or Shiblon]',
+        'ITC Work [noun]': 'ITC Work, Works [noun]',
+        'ITC Meet [verb]': 'ITC Meet, Met, Meeting',
+        'ITC Bear [verb]': 'ITC Bear, Bore, Borne',
+        'ITC Spirit, Holy': 'ITC Spirit, Holy/Spirit of the Lord',
+        'ITC Shiblom1': 'ITC Shiblom1 [or Shiblon]',
     }
     if topic in manual:
         return manual[topic]
