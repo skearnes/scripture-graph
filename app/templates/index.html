@@ -24,7 +24,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.38.0/jquery.fancytree-all-deps.min.js" integrity="sha512-JZIbVDpY75RDvgw47H+qr7U7heyZpgp/JKd9W36fpCsDG8zQEDNpWXpd2dvHfcSdgI3SbxCHNQSP6StaZC7YxQ==" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.38.0/skin-awesome/ui.fancytree.min.css" integrity="sha512-sFxlk3UZ+ZiWPfHm/CfClk1ejJGQSUyB/FKa5dna7SOzOiA9yk75c0Ni6BVlePHWDf0n1qmpkPLka+HxjkJgnA==" crossorigin="anonymous" />
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script>const VERSE = "{{ verse }}";</script>
+    <script>const VERSE = '{{ verse }}'.replace(/^D&amp;C/, 'D&C');</script>
     <script src="{{ url_for('static', filename='graph.js') }}"></script>
     <script src="{{ url_for('static', filename='navigation.js') }}"></script>
 </head>
