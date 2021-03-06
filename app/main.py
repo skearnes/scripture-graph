@@ -91,7 +91,7 @@ def root() -> str:
 @app.route('/navigation')
 def get_navigation() -> str:
     """Fetches the navigation tree for the sidebar."""
-    with gzip.open('static/navigation.json') as f:
+    with gzip.open('static/navigation.json.gz') as f:
         return flask.jsonify(json.load(f))
 
 

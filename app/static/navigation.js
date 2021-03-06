@@ -17,9 +17,17 @@
 'use strict';
 
 function initNavigation(verse) {
+    // See https://wwwendt.de/tech/fancytree/demo/#sample-configurator.html.
     $('#nav').fancytree({
         source: {
             url: '/navigation'
-        }
+        },
+        autoCollapse: true,
+        autoScroll: true,
+        clickFolderMode: 3,
+        debugLevel: 3,
+        icon: false,
+        selectMode: 1,
+        tabindex: "0"
     });
 }
