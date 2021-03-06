@@ -75,3 +75,20 @@ function init(verse) {
 }
 
 init(VERSE);
+
+/**
+ * Updates the graph to focus on a new verse.
+ * @param {string} verse
+ */
+async function update(verse) {
+    const elements = await getElements(verse);
+    cy.remove('*');  // Clear the current graph.
+    cy.add(elements);
+    const layout = cy.layout({
+        name: 'cose',
+        animate: false,
+    });
+    layout.run();
+}
+
+update('Hel. 5:12');

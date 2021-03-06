@@ -50,7 +50,12 @@ GRAPH = load_graph()
 def get_elements() -> str:
     """Fetches the neighborhood around a verse."""
     verse = flask.request.get_data(as_text=True)
-    return flask.jsonify(_get_elements(verse))
+    elements = _get_elements(verse)
+    num_nodes = len(elements['nodes'])
+    num_edges = len(elements['edges'])
+    app.logger.info(
+        f'Fetched {num_nodes} nodes and {num_edges} edges for {verse}')
+    return flask.jsonify(elements)
 
 
 def _get_elements(verse: str) -> Elements:
