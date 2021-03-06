@@ -15,7 +15,7 @@
  */
 
 #nav {
-    width: 150px;
+    width: 200px;
     position: fixed;
     display: block;
 }
@@ -24,10 +24,11 @@
     width: 500px;
     height: 500px;
     display: block;
-    margin-left: 160px;
+    margin-left: 200px;
     border: solid 1px black;
 }
 
+/* See http://wwwendt.de/tech/fancytree/demo/sample-scroll.html. */
 ul.fancytree-container {
     height: 500px;
     overflow: auto;

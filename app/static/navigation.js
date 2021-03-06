@@ -22,12 +22,22 @@ function initNavigation(verse) {
         source: {
             url: '/navigation'
         },
+        // Options.
         autoCollapse: true,
         autoScroll: true,
         clickFolderMode: 3,
         debugLevel: 3,
         icon: false,
         selectMode: 1,
-        tabindex: "0"
+        tabindex: "0",
+        // Callbacks.
+        activate: function (event, data) {
+            updateGraph(data.node.title);
+        },
+        beforeActivate: function (event, data) {
+            if (data.node.isFolder()) {
+                return false;  // Don't allow selection of parent nodes.
+            }
+        }
     });
 }
