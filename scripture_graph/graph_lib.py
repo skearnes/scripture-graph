@@ -15,6 +15,7 @@
 
 import dataclasses
 import io
+import json
 import os
 import re
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -23,6 +24,7 @@ import zipfile
 from absl import logging
 from lxml import cssselect
 from lxml import etree
+import networkx as nx
 
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
@@ -575,3 +577,46 @@ def _translate_topic(topic: str, topics: Iterable[str]) -> str:
         if short_topic in short_title.split(', '):
             return title
     raise ValueError(f'no suitable translation for {topic}')
+
+
+def drop_topic_nodes(graph: nx.Graph):
+    """Drops topic nodes from the graph."""
+    logging.info('Dropping topic nodes')
+    logging.info('Original graph has %d nodes and %d edges',
+                 graph.number_of_nodes(), graph.number_of_edges())
+    drop = set()
+    for node in graph.nodes:
+        if graph.nodes[node]['kind'] == 'topic':
+            drop.add(node)
+    for node in drop:
+        graph.remove_node(node)
+    logging.info('Updated graph has %d nodes and %d edges',
+                 graph.number_of_nodes(), graph.number_of_edges())
+
+
+def write_cytoscape(graph: nx.Graph, filename: str):
+    """Writes a graph to Cytoscape.js format.
+
+    See https://js.cytoscape.org/#notation/elements-json.
+
+    Args:
+        graph: Graph to write.
+        filename: Output filename.
+    """
+    drop_topic_nodes(graph)
+    nodes = []
+    for node in graph.nodes:
+        nodes.append({'data': {'id': node}})
+    edges = []
+    for source, target in graph.edges:
+        edges.append({
+            'data': {
+                'id': f'{source} -> {target}',
+                'source': source,
+                'target': target
+            }
+        })
+    elements = {'nodes': nodes, 'edges': edges}
+    output = json.dumps(elements, indent=2)
+    with open(filename, 'w') as f:
+        f.write(f'const elements = {output}')

@@ -81,6 +81,8 @@ def main(argv):
         nx.write_gml(graph, FLAGS.output)
     elif FLAGS.output.endswith('.graphml'):
         nx.write_graphml(graph, FLAGS.output)
+    elif FLAGS.output.endswith('.js'):
+        graph_lib.write_cytoscape(graph, FLAGS.output)
     else:
         raise NotImplementedError(FLAGS.output)
 
