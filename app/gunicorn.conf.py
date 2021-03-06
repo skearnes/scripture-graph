@@ -1,4 +1,4 @@
-# Copyright 2020 Steven Kearnes
+# Copyright 2021 Steven Kearnes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,20 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Installation script."""
+"""Gunicorn configuration.
 
-from setuptools import find_packages
-from setuptools import setup
+https://cloud.google.com/appengine/docs/flexible/python/runtime#recommended_gunicorn_configuration.
+"""
 
-if __name__ == '__main__':
-    setup(name='scripture-graph',
-          packages=find_packages(),
-          install_requires=[
-              'absl-py~=0.11.0',
-              'cssselect~=1.1.0',
-              'lxml~=4.6.2',
-              'networkx~=2.5',
-              'numpy~=1.18.5',
-              'pandas~=1.1.3',
-              'seaborn~=0.11.0',
-          ])
+accesslog = '-'
+access_log_format = (
+    '%(t)s %({user-id}o)s %(U)s %(s)s %(L)s %(b)s %(f)s "%(r)s" "%(a)s"')
+workers = 1
