@@ -29,7 +29,7 @@ function getElements(verse) {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/elements');
         xhr.responseType = 'json';
-        xhr.onload = function() {
+        xhr.onload = function () {
             if (xhr.status === 200) {
                 resolve(xhr.response);
             } else {
@@ -38,6 +38,16 @@ function getElements(verse) {
         }
         xhr.send(verse);
     });
+}
+
+/**
+ * Updates the URL query string.
+ * @param {string} verse
+ */
+function updateQuery(verse) {
+    const queryParams = new URLSearchParams(window.location.search);
+    queryParams.set('verse', verse);
+    history.pushState({'verse': verse}, verse, '?' + queryParams.toString());
 }
 
 /**
@@ -72,6 +82,7 @@ function init(verse) {
             animate: false,
         },
     });
+    updateQuery(verse);
 }
 
 init(VERSE);
@@ -89,6 +100,5 @@ async function update(verse) {
         animate: false,
     });
     layout.run();
+    updateQuery(verse);
 }
-
-update('Hel. 5:12');

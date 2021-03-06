@@ -88,9 +88,10 @@ def _get_elements(verse: str) -> Elements:
     return {'nodes': nodes, 'edges': edges}
 
 
-@app.route('/')
-@app.route('/<verse>')
-def root(verse: str = 'John 3:16'):
+@app.route('/', methods=['GET'])
+def root():
+    verse = flask.request.args.get('verse', type=str, default='John 3:16')
+    app.logger.info(f'Received request for {verse}')
     return flask.render_template('index.html', verse=verse)
 
 
