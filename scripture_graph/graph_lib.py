@@ -13,6 +13,7 @@
 # limitations under the License.
 """Utilities for parsing scriptures EPUB into verses and references."""
 
+import collections
 import dataclasses
 import io
 import json
@@ -620,3 +621,57 @@ def write_cytoscape(graph: nx.Graph, filename: str):
     output = json.dumps(elements, indent=2)
     with open(filename, 'w') as f:
         f.write(f'const elements = {output}')
+
+
+def write_tree(graph: nx.Graph, filename: str):
+    """Writes a JSON navigation tree."""
+    source = []
+    book_names = {value: key for key, value in BOOKS_SHORT.items()}
+    for volume, books in VOLUMES.items():
+        if volume not in VOLUMES_SHORT:
+            continue
+        volume_children = []
+        for book_short in books:
+            book = book_names[book_short]
+            verses = get_verses(graph, book_short)
+            book_children = []
+            for chapter_number in sorted(verses):
+                chapter = f'{book_short} {chapter_number}'
+                chapter_children = []
+                for verse_number in sorted(verses[chapter_number]):
+                    verse = f'{book_short} {chapter_number}:{verse_number}'
+                    chapter_children.append({'title': verse, 'key': verse})
+                book_children.append({
+                    'title': chapter,
+                    'key': chapter,
+                    'folder': True,
+                    'children': chapter_children
+                })
+            if len(book_children) == 1:
+                book_children = book_children[0]['children']
+            volume_children.append({
+                'title': book,
+                'key': book,
+                'folder': True,
+                'children': book_children
+            })
+        if len(volume_children) == 1:
+            volume_children = volume_children[0]['children']
+        source.append({
+            'title': volume,
+            'key': volume,
+            'folder': True,
+            'children': volume_children
+        })
+    with open(filename, 'w') as f:
+        json.dump(source, f, indent=2)
+
+
+def get_verses(graph: nx.Graph, book: str) -> Dict[int, List[str]]:
+    """Returns a dict mapping chapter numbers to verse counts for a book."""
+    verses = collections.defaultdict(list)
+    for node in graph.nodes:
+        data = graph.nodes[node]
+        if data['book'] == book:
+            verses[data['chapter']].append(data['verse'])
+    return verses

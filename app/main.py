@@ -13,11 +13,13 @@
 # limitations under the License.
 """Flask application for serving the cross-reference graph."""
 
+import json
 import logging
 from typing import Dict, List
 
 import flask
 import networkx as nx
+from scripture_graph import graph_lib
 
 app = flask.Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -28,18 +30,7 @@ Elements = Dict[str, List[Dict[str, Dict[str, str]]]]
 def load_graph() -> nx.Graph:
     """Loads the static cross-reference graph."""
     graph = nx.read_graphml('data/scripture_graph.graphml')
-    # Drop topic nodes/references.
-    app.logger.info('Dropping topic nodes')
-    app.logger.info('Original graph has %d nodes and %d edges',
-                    graph.number_of_nodes(), graph.number_of_edges())
-    drop = set()
-    for node in graph.nodes:
-        if graph.nodes[node]['kind'] == 'topic':
-            drop.add(node)
-    for node in drop:
-        graph.remove_node(node)
-    app.logger.info('Updated graph has %d nodes and %d edges',
-                    graph.number_of_nodes(), graph.number_of_edges())
+    graph_lib.drop_topic_nodes(graph)
     return graph
 
 
@@ -89,10 +80,18 @@ def _get_elements(verse: str) -> Elements:
 
 
 @app.route('/', methods=['GET'])
-def root():
+def root() -> str:
+    """Shows the main graph exploration page."""
     verse = flask.request.args.get('verse', type=str, default='John 3:16')
     app.logger.info(f'Received request for {verse}')
     return flask.render_template('index.html', verse=verse)
+
+
+@app.route('/navigation')
+def get_navigation() -> str:
+    """Fetches the navigation tree for the sidebar."""
+    with open('static/navigation.json') as f:
+        return flask.jsonify(json.load(f))
 
 
 if __name__ == '__main__':
