@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#nav {
-    width: 200px;
+#tree {
+    width: 220px;
     position: fixed;
     display: block;
 }
@@ -24,7 +24,7 @@
     width: 500px;
     height: 500px;
     display: block;
-    margin-left: 200px;
+    margin-left: 220px;
     border: solid 1px black;
 }
 
@@ -32,4 +32,5 @@
 ul.fancytree-container {
     height: 500px;
     overflow: auto;
+    font-size: 11pt;
 }

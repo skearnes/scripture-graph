@@ -16,9 +16,13 @@
 
 'use strict';
 
+/**
+ * Initializes the navigation sidebar.
+ * @param {string} verse
+ */
 function initNavigation(verse) {
     // See https://wwwendt.de/tech/fancytree/demo/#sample-configurator.html.
-    $('#nav').fancytree({
+    $('#tree').fancytree({
         source: {
             url: '/navigation'
         },
@@ -40,4 +44,10 @@ function initNavigation(verse) {
             }
         }
     });
+    // TODO(kearnes): This doesn't work.
+    const tree = $.ui.fancytree.getTree("#tree");
+    const node = tree.getNodeByKey(verse);
+    if (node !== null) {
+        node.setSelected(true);
+    }
 }
