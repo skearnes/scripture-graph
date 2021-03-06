@@ -22,27 +22,12 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.18.1/dist/cytoscape.min.js"></script>
     <!--    <script src="https://cdn.jsdelivr.net/npm/jquery.fancytree@2.38.0/dist/modules/jquery.fancytree.min.js"></script>-->
-    <!-- Load the network. -->
-    <script src="data/scripture_graph.js"></script>
-    <style>
-        #nav {
-            width: 150px;
-            position: fixed;
-            display: block;
-        }
-
-        #cy {
-            width: 500px;
-            height: 500px;
-            display: block;
-            margin-left: 160px;
-            border: solid 1px black;
-        }
-    </style>
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>const VERSE = "{{ verse }}";</script>
 </head>
 <body>
 <div id="nav"></div>
 <div id="cy"></div>
-<script src="scripts/scripture_graph.js"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

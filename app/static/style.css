@@ -1,0 +1,13 @@
+#nav {
+    width: 150px;
+    position: fixed;
+    display: block;
+}
+
+#cy {
+    width: 500px;
+    height: 500px;
+    display: block;
+    margin-left: 160px;
+    border: solid 1px black;
+}

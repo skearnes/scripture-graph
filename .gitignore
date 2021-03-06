@@ -132,7 +132,7 @@ dmypy.json
 .idea
 *.epub
 *.epub.*
-web/data/
+app/data/
 
 # Cytoscape
 *.cys
