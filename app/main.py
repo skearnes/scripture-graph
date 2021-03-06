@@ -11,16 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Flask application for serving the cross-reference graph."""
 
+import logging
 from typing import Dict, List
 
-from absl import logging
 import flask
 import networkx as nx
 
 app = flask.Flask(__name__)
+logging.basicConfig(level=logging.INFO)
 
 Elements = Dict[str, List[Dict[str, Dict[str, str]]]]
 
@@ -29,17 +29,17 @@ def load_graph() -> nx.Graph:
     """Loads the static cross-reference graph."""
     graph = nx.read_graphml('data/scripture_graph.graphml')
     # Drop topic nodes/references.
-    logging.info('Dropping topic nodes')
-    logging.info('Original graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    app.logger.info('Dropping topic nodes')
+    app.logger.info('Original graph has %d nodes and %d edges',
+                    graph.number_of_nodes(), graph.number_of_edges())
     drop = set()
     for node in graph.nodes:
         if graph.nodes[node]['kind'] == 'topic':
             drop.add(node)
     for node in drop:
         graph.remove_node(node)
-    logging.info('Updated graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    app.logger.info('Updated graph has %d nodes and %d edges',
+                    graph.number_of_nodes(), graph.number_of_edges())
     return graph
 
 
