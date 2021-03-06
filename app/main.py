@@ -13,6 +13,7 @@
 # limitations under the License.
 """Flask application for serving the cross-reference graph."""
 
+import gzip
 import json
 import logging
 from typing import Dict, List
@@ -90,7 +91,7 @@ def root() -> str:
 @app.route('/navigation')
 def get_navigation() -> str:
     """Fetches the navigation tree for the sidebar."""
-    with open('static/navigation.json') as f:
+    with gzip.open('static/navigation.json') as f:
         return flask.jsonify(json.load(f))
 
 
