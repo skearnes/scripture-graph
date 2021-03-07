@@ -61,18 +61,41 @@ function initGraph(verse) {
         style: [
             {
                 selector: 'node',
-                style: {
-                    'background-color': '#666',
-                    'label': 'data(id)',
+                css: {
+                    'font-family': 'SansSerif.plain',
+                    'font-weight': 'normal',
+                    'background-opacity': 1.0,
+                    'font-size': 12,
+                    'background-color': 'rgb(255,255,255)',
+                    'border-opacity': 1.0,
+                    'text-opacity': 1.0,
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'border-width': 0.0,
+                    'border-color': 'rgb(204,204,204)',
+                    'shape': 'roundrectangle',
+                    'width': 75.0,
+                    'color': 'rgb(0,0,0)',
+                    'height': 35.0,
+                    'content': 'data(id)'
                 }
             },
             {
                 selector: 'edge',
-                style: {
-                    'width': 3,
-                    'line-color': '#ccc',
-                    'target-arrow-color': '#ccc',
+                css: {
+                    'width': 1.0,
+                    'color': 'rgb(0,0,0)',
+                    'text-opacity': 1.0,
+                    'target-arrow-color': 'rgb(0,204,255)',
+                    'line-color': 'rgb(0,204,255)',
+                    'source-arrow-color': 'rgb(0,204,255)',
+                    'line-style': 'solid',
+                    'source-arrow-shape': 'none',
+                    'opacity': 1.0,
+                    'font-size': 10,
                     'target-arrow-shape': 'triangle',
+                    'font-family': 'Dialog.plain',
+                    'font-weight': 'normal',
                     'curve-style': 'bezier'
                 }
             }
