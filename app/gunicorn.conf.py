@@ -16,7 +16,4 @@
 https://cloud.google.com/appengine/docs/flexible/python/runtime#recommended_gunicorn_configuration.
 """
 
-accesslog = '-'
-access_log_format = (
-    '%(t)s %({user-id}o)s %(U)s %(s)s %(L)s %(b)s %(f)s "%(r)s" "%(a)s"')
 workers = 1
