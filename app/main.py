@@ -94,7 +94,7 @@ def root() -> str:
 @app.route('/tree')
 def get_tree() -> str:
     """Fetches the navigation tree for the sidebar."""
-    with gzip.open('static/tree.json.gz') as f:
+    with gzip.open('data/tree.json.gz') as f:
         return flask.jsonify(json.load(f))
 
 
