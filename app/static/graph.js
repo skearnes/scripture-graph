@@ -55,6 +55,7 @@ function updateQuery(verse) {
  * @param {string} verse
  */
 function initGraph(verse) {
+    // See https://js.cytoscape.org/#core/initialisation.
     cy = cytoscape({
         container: document.getElementById('cy'),
         elements: getElements(verse),
@@ -62,7 +63,6 @@ function initGraph(verse) {
             {
                 selector: 'node',
                 css: {
-                    'font-family': 'SansSerif.plain',
                     'font-weight': 'normal',
                     'background-opacity': 1.0,
                     'font-size': 12,
@@ -74,9 +74,9 @@ function initGraph(verse) {
                     'border-width': 0.0,
                     'border-color': 'rgb(204,204,204)',
                     'shape': 'roundrectangle',
-                    'width': 75.0,
-                    'color': 'rgb(0,0,0)',
-                    'height': 35.0,
+                    'width': 'label',
+                    'height': 'label',
+                    'padding': '5px',
                     'content': 'data(id)'
                 }
             },
@@ -84,7 +84,6 @@ function initGraph(verse) {
                 selector: 'edge',
                 css: {
                     'width': 1.0,
-                    'color': 'rgb(0,0,0)',
                     'text-opacity': 1.0,
                     'target-arrow-color': 'rgb(0,204,255)',
                     'line-color': 'rgb(0,204,255)',
@@ -94,16 +93,16 @@ function initGraph(verse) {
                     'opacity': 1.0,
                     'font-size': 10,
                     'target-arrow-shape': 'triangle',
-                    'font-family': 'Dialog.plain',
                     'font-weight': 'normal',
-                    'curve-style': 'bezier'
+                    'curve-style': 'straight'
                 }
             }
         ],
         layout: {
-            name: 'cose',
+            name: 'cola',
             animate: false,
         },
+        autoungrabify: true,
     });
     updateQuery(verse);
 }
@@ -117,7 +116,7 @@ async function updateGraph(verse) {
     cy.remove('*');  // Clear the current graph.
     cy.add(elements);
     const layout = cy.layout({
-        name: 'cose',
+        name: 'cola',
         animate: false,
     });
     layout.run();
