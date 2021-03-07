@@ -20,11 +20,11 @@
  * Initializes the navigation sidebar.
  * @param {string} verse
  */
-function initNavigation(verse) {
+function initTree(verse) {
     // See https://wwwendt.de/tech/fancytree/demo/#sample-configurator.html.
     $('#tree').fancytree({
         source: {
-            url: '/navigation'
+            url: '/tree'
         },
         // Options.
         autoCollapse: true,
@@ -37,6 +37,7 @@ function initNavigation(verse) {
         // Callbacks.
         activate: function (event, data) {
             updateGraph(data.node.title);
+            updateTable(data.node.title);
         },
         beforeActivate: function (event, data) {
             if (data.node.isFolder()) {

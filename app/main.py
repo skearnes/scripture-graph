@@ -17,6 +17,7 @@ import gzip
 import json
 import logging
 from typing import Dict, List
+from urllib import parse
 
 import flask
 import networkx as nx
@@ -27,8 +28,10 @@ logging.basicConfig(level=logging.INFO)
 
 Elements = Dict[str, List[Dict[str, Dict[str, str]]]]
 
+URL_BASE = 'https://www.churchofjesuschrist.org/study/scriptures/'
 
-def load_graph() -> nx.Graph:
+
+def load_graph() -> nx.DiGraph:
     """Loads the static cross-reference graph."""
     graph = nx.read_graphml('data/scripture_graph.graphml')
     graph_lib.drop_topic_nodes(graph)
@@ -88,11 +91,57 @@ def root() -> str:
     return flask.render_template('index.html', verse=verse)
 
 
-@app.route('/navigation')
-def get_navigation() -> str:
+@app.route('/tree')
+def get_tree() -> str:
     """Fetches the navigation tree for the sidebar."""
-    with gzip.open('static/navigation.json.gz') as f:
+    with gzip.open('static/tree.json.gz') as f:
         return flask.jsonify(json.load(f))
+
+
+@app.route('/table', methods=['POST'])
+def get_table() -> str:
+    """Builds a cross-reference table for the given verse."""
+    verse = flask.request.get_data(as_text=True)
+    args = {
+        'verse': verse,
+        'verse_url': get_verse_url(verse),
+        'incoming': [],
+        'outgoing': [],
+    }
+    for source, target in GRAPH.in_edges(verse):
+        assert target == verse
+        args['incoming'].append((source, get_verse_url(source)))
+    for source, target in GRAPH.out_edges(verse):
+        assert source == verse
+        args['outgoing'].append((target, get_verse_url(target)))
+    return flask.jsonify(flask.render_template('table.html', **args))
+
+
+def get_verse_url(verse: str) -> str:
+    """Creates a URL for the verse text."""
+    node = GRAPH.nodes[verse]
+    volume = graph_lib.VOLUMES_SHORT[node['volume']].lower()
+    if volume == 'bom':
+        volume = 'bofm'
+    elif volume == 'd&c':
+        volume = 'dc-testament'
+    elif volume == 'pogp':
+        volume = 'pgp'
+    book = node['book'].lower()
+    book_replacements = {
+        ' ': '-',
+        '.': '',
+        '&': '',
+        '—': '-',
+    }
+    for old, new in book_replacements.items():
+        book = book.replace(old, new)
+    if book == 'd&c':
+        book = 'dc'
+    chapter = node['chapter']
+    i = node['verse']
+    return parse.urljoin(URL_BASE,
+                         f'{volume}/{book}/{chapter}.{i}?lang=eng#p{i}#{i}')
 
 
 if __name__ == '__main__':

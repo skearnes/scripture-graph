@@ -28,14 +28,33 @@
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script>const VERSE = '{{ verse }}'.replace(/^D&amp;C/, 'D&C');</script>
     <script src="{{ url_for('static', filename='graph.js') }}"></script>
-    <script src="{{ url_for('static', filename='navigation.js') }}"></script>
+    <script src="{{ url_for('static', filename='tree.js') }}"></script>
+    <script src="{{ url_for('static', filename='table.js') }}"></script>
 </head>
 <body>
-<div id="tree"></div>
-<div id="cy"></div>
+<div id="container">
+    <div id="tree"></div>
+    <div id="cy"></div>
+    <div id="table"></div>
+    <div id="footer">
+        <div>
+        <a href="http://creativecommons.org/licenses/by-sa/4.0/" rel="license"><img
+                alt="Creative Commons License"
+                src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+                style="border-width: 0px; vertical-align: middle;"/></a>&nbsp;&nbsp;<span
+            style="font-size: small; vertical-align: middle;">Steven Kearnes, 2021</span>
+        </div>
+        <div style="font-size: small; width: 360px;">
+            © Copyright 2021 Steven Kearnes. This work is licensed under a
+            <a href="http://creativecommons.org/licenses/by-sa/4.0/" rel="license">Creative
+                Commons Attribution-ShareAlike 4.0 International License</a>.
+        </div>
+</div>
+</div>
 <script>
-    initNavigation(VERSE);
+    initTree(VERSE);
     initGraph(VERSE);
+    updateTable(VERSE);
 </script>
 </body>
 </html>
