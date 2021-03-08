@@ -17,12 +17,12 @@
 
 <html lang="en">
 <body>
-<h3><a href="{{ verse_url }}">{{ verse }}</a></h3>
+<h3 style="margin-top: 0;"><a href="{{ verse_url }}" rel="noopener noreferrer" target="_blank">{{ verse }}</a></h3>
 <h4>Verses that reference {{ verse }}</h4>
 {% if incoming %}
 <ul>
     {% for name, url in incoming %}
-        <li><a href="{{ url }}">{{ name }}</a></li>
+    <li><a href="{{ url }}" rel="noopener noreferrer" target="_blank">{{ name }}</a></li>
     {% endfor %}
 </ul>
 {% endif %}
@@ -30,7 +30,7 @@
 {% if outgoing %}
 <ul>
     {% for name, url in outgoing %}
-        <li><a href="{{ url }}">{{ name }}</a></li>
+    <li><a href="{{ url }}" rel="noopener noreferrer" target="_blank">{{ name }}</a></li>
     {% endfor %}
 </ul>
 {% endif %}

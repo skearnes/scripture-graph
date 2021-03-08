@@ -13,7 +13,6 @@
 # limitations under the License.
 """Flask application for serving the cross-reference graph."""
 
-import gzip
 import json
 import logging
 from typing import Dict, List
@@ -34,7 +33,7 @@ URL_BASE = 'https://www.churchofjesuschrist.org/study/scriptures/'
 def load_graph() -> nx.DiGraph:
     """Loads the static cross-reference graph."""
     graph = nx.read_graphml('data/scripture_graph.graphml')
-    graph_lib.drop_topic_nodes(graph)
+    graph_lib.remove_topic_nodes(graph)
     return graph
 
 
@@ -94,7 +93,7 @@ def root() -> str:
 @app.route('/tree')
 def get_tree() -> str:
     """Fetches the navigation tree for the sidebar."""
-    with gzip.open('data/tree.json.gz') as f:
+    with open('data/tree.json') as f:
         return flask.jsonify(json.load(f))
 
 

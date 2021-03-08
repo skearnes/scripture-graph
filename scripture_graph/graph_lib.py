@@ -580,7 +580,7 @@ def _translate_topic(topic: str, topics: Iterable[str]) -> str:
     raise ValueError(f'no suitable translation for {topic}')
 
 
-def drop_topic_nodes(graph: nx.Graph):
+def remove_topic_nodes(graph: nx.Graph):
     """Drops topic nodes from the graph."""
     logging.info('Dropping topic nodes')
     logging.info('Original graph has %d nodes and %d edges',
@@ -625,6 +625,8 @@ def write_cytoscape(graph: nx.Graph, filename: str):
 
 def write_tree(graph: nx.Graph, filename: str):
     """Writes a JSON navigation tree."""
+    graph = graph.copy()
+    remove_topic_nodes(graph)
     source = []
     book_names = {value: key for key, value in BOOKS_SHORT.items()}
     for volume, books in VOLUMES.items():
@@ -640,7 +642,10 @@ def write_tree(graph: nx.Graph, filename: str):
                 chapter_children = []
                 for verse_number in sorted(verses[chapter_number]):
                     verse = f'{book_short} {chapter_number}:{verse_number}'
-                    chapter_children.append({'title': verse, 'key': verse})
+                    chapter_children.append({
+                        'title': verse,
+                        'key': verse,
+                    })
                 book_children.append({
                     'title': chapter,
                     'key': chapter,

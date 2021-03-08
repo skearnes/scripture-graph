@@ -36,8 +36,8 @@ function initTree(verse) {
         tabindex: "0",
         // Callbacks.
         activate: function (event, data) {
-            updateGraph(data.node.title);
-            updateTable(data.node.title);
+            updateGraph(data.node.key);
+            updateTable(data.node.key);
         },
         beforeActivate: function (event, data) {
             if (data.node.isFolder()) {
