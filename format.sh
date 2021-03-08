@@ -30,3 +30,14 @@ if ! command -v yapf &> /dev/null; then
   pip install yapf
 fi
 yapf -p -r "${ROOT_DIR}" --in-place
+# Format javascript.
+if command -v clang-format-10 &> /dev/null; then
+  find "${ROOT_DIR}/app" -name '*.js' -exec clang-format-10 -i --style=file {} +
+elif command -v clang-format &> /dev/null; then
+  # NOTE(kearnes): Make sure you have version 10 or higher!
+  find "${ROOT_DIR}/app" -name '*.js' -exec clang-format -i --style=file {} +
+else
+  echo "Please install clang-format:"
+  echo "  Linux: apt install clang-format-10"
+  echo "  MacOS: brew install clang-format"
+fi

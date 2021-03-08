@@ -23,9 +23,7 @@
 function initTree(verse) {
     // See https://wwwendt.de/tech/fancytree/demo/#sample-configurator.html.
     $('#tree').fancytree({
-        source: {
-            url: '/tree'
-        },
+        source: {url: '/tree'},
         // Options.
         autoCollapse: true,
         autoScroll: true,
@@ -33,20 +31,20 @@ function initTree(verse) {
         debugLevel: 3,
         icon: false,
         selectMode: 1,
-        tabindex: "0",
+        tabindex: '0',
         // Callbacks.
-        activate: function (event, data) {
+        activate: function(event, data) {
             updateGraph(data.node.key);
             updateTable(data.node.key);
         },
-        beforeActivate: function (event, data) {
+        beforeActivate: function(event, data) {
             if (data.node.isFolder()) {
                 return false;  // Don't allow selection of parent nodes.
             }
         }
     });
     // TODO(kearnes): This doesn't work.
-    const tree = $.ui.fancytree.getTree("#tree");
+    const tree = $.ui.fancytree.getTree('#tree');
     const node = tree.getNodeByKey(verse);
     if (node !== null) {
         node.setSelected(true);

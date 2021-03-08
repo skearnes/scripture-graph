@@ -19,6 +19,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Welding Links | Connection Explorer</title>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2YJBJ95WMF"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-2YJBJ95WMF');
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.1/cytoscape.min.js" integrity="sha512-MgZAJudXekIHKoFtEk1NUwpSSCDt6JlfkUdwgX/1ustAyJltGO82ayHPOyK31xy9q84nGecgtF+D9hdm2OZldg==" crossorigin="anonymous"></script>
     <script src="https://marvl.infotech.monash.edu/webcola/cola.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cytoscape-cola@2.4.0/cytoscape-cola.min.js"></script>
@@ -36,6 +44,14 @@
     <div id="tree"></div>
     <div id="cy"></div>
     <div id="table"></div>
+    <div id="help">
+        <h2>Instructions:</h2>
+        <ul>
+            <li>Use the menu on the left to select a verse.</li>
+            <li>Click on any verse in the graph to re-focus on that node.</li>
+            <li>Click the links on the right to view the verse text at <a href="https://www.churchofjesuschrist.org/study/scriptures?lang=eng">ChurchofJesusChrist.org</a>.</li>
+        </ul>
+    </div>
     <div id="footer">
         <div>
         <a href="http://creativecommons.org/licenses/by-sa/4.0/" rel="license"><img

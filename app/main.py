@@ -102,7 +102,7 @@ def get_table() -> str:
     """Builds a cross-reference table for the given verse."""
     verse = flask.request.get_data(as_text=True)
     args = {
-        'verse': verse,
+        'verse': verse.replace(' ', '\xa0'),  # Non-breaking space.
         'verse_url': get_verse_url(verse),
         'incoming': [],
         'outgoing': [],

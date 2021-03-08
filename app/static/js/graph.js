@@ -19,6 +19,14 @@
 // Global Cytoscape object.
 let cy = null;
 
+// History handler to correctly process the back button.
+window.onpopstate =
+    function(event) {
+    // NOTE(kearnes): Do not call updateQuery.
+    updateGraph(event.state.verse);
+    updateTable(event.state.verse);
+}
+
 /**
  * Fetches the neighborhood around a verse.
  * @param {string} verse
@@ -29,13 +37,13 @@ function getElements(verse) {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/elements');
         xhr.responseType = 'json';
-        xhr.onload = function () {
+        xhr.onload = function() {
             if (xhr.status === 200) {
                 resolve(xhr.response);
             } else {
                 reject(verse);
             }
-        }
+        };
         xhr.send(verse);
     });
 }
@@ -47,7 +55,10 @@ function getElements(verse) {
 function updateQuery(verse) {
     const queryParams = new URLSearchParams(window.location.search);
     queryParams.set('verse', verse);
-    history.pushState({'verse': verse}, verse, '?' + queryParams.toString());
+    const state = {
+        verse: verse,
+    };
+    history.pushState(state, verse, '?' + queryParams.toString());
 }
 
 /**
@@ -104,21 +115,29 @@ function initGraph(verse) {
         },
         autoungrabify: true,
     });
+    cy.on('tap', 'node', function(event) {
+        const node = event.target;
+        updateGraph(node.id());
+        updateQuery(node.id());
+        updateTable(node.id());
+    });
     updateQuery(verse);
 }
 
 /**
  * Updates the graph to focus on a new verse.
  * @param {string} verse
+ * @param {boolean=} clear
  */
-async function updateGraph(verse) {
+async function updateGraph(verse, clear = true) {
     const elements = await getElements(verse);
-    cy.remove('*');  // Clear the current graph.
+    if (clear) {
+        cy.remove('*');
+    }
     cy.add(elements);
     const layout = cy.layout({
         name: 'cola',
         animate: false,
     });
     layout.run();
-    updateQuery(verse);
 }
