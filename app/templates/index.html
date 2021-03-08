@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+ Copyright 2021 Steven Kearnes
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welding Links | Connection Explorer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.1/cytoscape.min.js" integrity="sha512-MgZAJudXekIHKoFtEk1NUwpSSCDt6JlfkUdwgX/1ustAyJltGO82ayHPOyK31xy9q84nGecgtF+D9hdm2OZldg==" crossorigin="anonymous"></script>
+    <script src="https://marvl.infotech.monash.edu/webcola/cola.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-cola@2.4.0/cytoscape-cola.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.38.0/jquery.fancytree-all-deps.min.js" integrity="sha512-JZIbVDpY75RDvgw47H+qr7U7heyZpgp/JKd9W36fpCsDG8zQEDNpWXpd2dvHfcSdgI3SbxCHNQSP6StaZC7YxQ==" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.38.0/skin-win8-n/ui.fancytree.min.css" integrity="sha512-6387+1/KPWwIytDdqK6t5PNiF2BkJgvaFxnfifzq69Pg4ezZqhr/KLt2xmz2ZpOqMKxTnEFGbeE+HhPUw5elnQ==" crossorigin="anonymous" />
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>const VERSE = '{{ verse }}'.replace(/^D&amp;C/, 'D&C');</script>
+    <script src="{{ url_for('static', filename='js/graph.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tree.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/table.js') }}"></script>
+</head>
+<body>
+<div id="container">
+    <div id="tree"></div>
+    <div id="cy"></div>
+    <div id="table"></div>
+    <div id="footer">
+        <div>
+        <a href="http://creativecommons.org/licenses/by-sa/4.0/" rel="license"><img
+                alt="Creative Commons License"
+                src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+                style="border-width: 0px; vertical-align: middle;"/></a>&nbsp;&nbsp;<span
+            style="font-size: small; vertical-align: middle;">Steven Kearnes, 2021</span>
+        </div>
+        <div style="font-size: small; width: 360px;">
+            © Copyright 2021 Steven Kearnes. This work is licensed under a
+            <a href="http://creativecommons.org/licenses/by-sa/4.0/" rel="license">Creative
+                Commons Attribution-ShareAlike 4.0 International License</a>.
+        </div>
+</div>
+</div>
+<script>
+    initTree(VERSE);
+    initGraph(VERSE);
+    updateTable(VERSE);
+</script>
+</body>
+</html>

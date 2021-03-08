@@ -1,4 +1,5 @@
-# Copyright 2020 Steven Kearnes
+#!/bin/bash
+# Copyright 2021 Steven Kearnes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,20 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Installation script."""
 
-from setuptools import find_packages
-from setuptools import setup
+set -ex
 
-if __name__ == '__main__':
-    setup(name='scripture-graph',
-          packages=find_packages(),
-          install_requires=[
-              'absl-py~=0.11.0',
-              'cssselect~=1.1.0',
-              'lxml~=4.6.2',
-              'networkx~=2.5',
-              'numpy~=1.18.5',
-              'pandas~=1.1.3',
-              'seaborn~=0.11.0',
-          ])
+mkdir -p data
+python ../scripture_graph/build_graph.py \
+  --input_pattern="../*.epub" \
+  --output="data/scripture_graph.graphml" \
+  --tree="data/tree.json"

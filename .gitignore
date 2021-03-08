@@ -132,6 +132,8 @@ dmypy.json
 .idea
 *.epub
 *.epub.*
+app/data/
+*.graphml
 
 # Cytoscape
 *.cys

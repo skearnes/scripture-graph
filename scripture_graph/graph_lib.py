@@ -13,8 +13,10 @@
 # limitations under the License.
 """Utilities for parsing scriptures EPUB into verses and references."""
 
+import collections
 import dataclasses
 import io
+import json
 import os
 import re
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -23,6 +25,7 @@ import zipfile
 from absl import logging
 from lxml import cssselect
 from lxml import etree
+import networkx as nx
 
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
@@ -575,3 +578,77 @@ def _translate_topic(topic: str, topics: Iterable[str]) -> str:
         if short_topic in short_title.split(', '):
             return title
     raise ValueError(f'no suitable translation for {topic}')
+
+
+def remove_topic_nodes(graph: nx.Graph):
+    """Drops topic nodes from the graph."""
+    logging.info('Dropping topic nodes')
+    logging.info('Original graph has %d nodes and %d edges',
+                 graph.number_of_nodes(), graph.number_of_edges())
+    drop = set()
+    for node in graph.nodes:
+        if graph.nodes[node]['kind'] == 'topic':
+            drop.add(node)
+    for node in drop:
+        graph.remove_node(node)
+    logging.info('Updated graph has %d nodes and %d edges',
+                 graph.number_of_nodes(), graph.number_of_edges())
+
+
+def write_tree(graph: nx.Graph, filename: str):
+    """Writes a JSON navigation tree."""
+    graph = graph.copy()
+    remove_topic_nodes(graph)
+    source = []
+    book_names = {value: key for key, value in BOOKS_SHORT.items()}
+    for volume, books in VOLUMES.items():
+        if volume not in VOLUMES_SHORT:
+            continue
+        volume_children = []
+        for book_short in books:
+            book = book_names[book_short]
+            verses = get_verses(graph, book_short)
+            book_children = []
+            for chapter_number in sorted(verses):
+                chapter = f'{book_short} {chapter_number}'
+                chapter_children = []
+                for verse_number in sorted(verses[chapter_number]):
+                    verse = f'{book_short} {chapter_number}:{verse_number}'
+                    chapter_children.append({
+                        'title': verse,
+                        'key': verse,
+                    })
+                book_children.append({
+                    'title': chapter,
+                    'key': chapter,
+                    'folder': True,
+                    'children': chapter_children
+                })
+            if len(book_children) == 1:
+                book_children = book_children[0]['children']
+            volume_children.append({
+                'title': book,
+                'key': book,
+                'folder': True,
+                'children': book_children
+            })
+        if len(volume_children) == 1:
+            volume_children = volume_children[0]['children']
+        source.append({
+            'title': volume,
+            'key': volume,
+            'folder': True,
+            'children': volume_children
+        })
+    with open(filename, 'w') as f:
+        json.dump(source, f, indent=2)
+
+
+def get_verses(graph: nx.Graph, book: str) -> Dict[int, List[str]]:
+    """Returns a dict mapping chapter numbers to verse counts for a book."""
+    verses = collections.defaultdict(list)
+    for node in graph.nodes:
+        data = graph.nodes[node]
+        if data['book'] == book:
+            verses[data['chapter']].append(data['verse'])
+    return verses
