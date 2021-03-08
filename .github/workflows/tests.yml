@@ -92,7 +92,7 @@ jobs:
           pip install yapf
           yapf --parallel --recursive --quiet .
       - name: Install scripture-graph
-        run:
+        run: |
           cd "${GITHUB_WORKSPACE}"
           python setup.py install
       - name: Run pylint
