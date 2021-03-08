@@ -25,13 +25,13 @@ function getTable(verse) {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/table');
         xhr.responseType = 'json';
-        xhr.onload = function () {
+        xhr.onload = function() {
             if (xhr.status === 200) {
                 resolve(xhr.response);
             } else {
                 reject(verse);
             }
-        }
+        };
         xhr.send(verse);
     });
 }
