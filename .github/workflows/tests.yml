@@ -27,7 +27,6 @@ jobs:
       - name: Install scripture-graph
         run: |
           cd "${GITHUB_WORKSPACE}"
-          pip install -r requirements.txt
           python setup.py build install
       - name: Run tests
         run: |
@@ -44,7 +43,6 @@ jobs:
       - name: Install scripture-graph
         run: |
           cd "${GITHUB_WORKSPACE}"
-          pip install -r requirements.txt
           python setup.py install
       - name: Cache EPUBs
         id: cache-epubs
@@ -94,8 +92,8 @@ jobs:
           pip install yapf
           yapf --parallel --recursive --quiet .
       - name: Install scripture-graph
-        run: |
-          pip install -r requirements.txt
+        run:
+          cd "${GITHUB_WORKSPACE}"
           python setup.py install
       - name: Run pylint
         run: |

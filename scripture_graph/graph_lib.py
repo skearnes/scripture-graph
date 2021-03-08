@@ -595,34 +595,6 @@ def remove_topic_nodes(graph: nx.Graph):
                  graph.number_of_nodes(), graph.number_of_edges())
 
 
-def write_cytoscape(graph: nx.Graph, filename: str):
-    """Writes a graph to Cytoscape.js format.
-
-    See https://js.cytoscape.org/#notation/elements-json.
-
-    Args:
-        graph: Graph to write.
-        filename: Output filename.
-    """
-    drop_topic_nodes(graph)
-    nodes = []
-    for node in graph.nodes:
-        nodes.append({'data': {'id': node}})
-    edges = []
-    for source, target in graph.edges:
-        edges.append({
-            'data': {
-                'id': f'{source} -> {target}',
-                'source': source,
-                'target': target
-            }
-        })
-    elements = {'nodes': nodes, 'edges': edges}
-    output = json.dumps(elements, indent=2)
-    with open(filename, 'w') as f:
-        f.write(f'const elements = {output}')
-
-
 def write_tree(graph: nx.Graph, filename: str):
     """Writes a JSON navigation tree."""
     graph = graph.copy()

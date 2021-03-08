@@ -40,6 +40,16 @@ flags.DEFINE_string('tree', None, 'Output tree filename.')
 flags.DEFINE_boolean('topics', True, 'Whether to include topic nodes.')
 
 
+def write_graph(graph: nx.Graph, filename: str):
+    """Writes a graph to disk."""
+    if filename.endswith('.gml'):
+        nx.write_gml(graph, filename)
+    elif filename.endswith('.graphml'):
+        nx.write_graphml(graph, filename)
+    else:
+        raise NotImplementedError(filename)
+
+
 def main(argv):
     del argv  # Only used by app.run().
     scripture_graph = graph_lib.ScriptureGraph()
@@ -63,10 +73,10 @@ def main(argv):
                            kind='topic',
                            volume=volume,
                            **dataclasses.asdict(topic))
-        references = graph_lib.correct_topic_references(
-            verses=scripture_graph.verses.keys(),
-            topics=scripture_graph.topics.keys(),
-            references=scripture_graph.references)
+    references = graph_lib.correct_topic_references(
+        verses=scripture_graph.verses.keys(),
+        topics=scripture_graph.topics.keys(),
+        references=scripture_graph.references)
     duplicated_edges = 0
     for reference in references:
         if reference.source not in graph.nodes:
@@ -80,14 +90,7 @@ def main(argv):
     if duplicated_edges:
         logging.info(f'ignored {duplicated_edges} duplicated edges')
     logging.info(nx.info(graph))
-    if FLAGS.output.endswith('.gml'):
-        nx.write_gml(graph, FLAGS.output)
-    elif FLAGS.output.endswith('.graphml'):
-        nx.write_graphml(graph, FLAGS.output)
-    elif FLAGS.output.endswith('.js'):
-        graph_lib.write_cytoscape(graph, FLAGS.output)
-    else:
-        raise NotImplementedError(FLAGS.output)
+    write_graph(graph, FLAGS.output)
     if FLAGS.tree:
         graph_lib.write_tree(graph, FLAGS.tree)
 
