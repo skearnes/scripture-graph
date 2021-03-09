@@ -114,12 +114,18 @@ function initGraph(verse) {
             animate: false,
         },
         autoungrabify: true,
+        boxSelectionEnabled: false,
+        userPanningEnabled: false,
+        userZoomingEnabled: false,
     });
     cy.on('tap', 'node', function(event) {
-        const node = event.target;
-        updateGraph(node.id());
-        updateQuery(node.id());
-        updateTable(node.id());
+        const verse = event.target.id();
+        const queryParams = new URLSearchParams(window.location.search);
+        if (queryParams.get('verse') !== verse) {
+            updateGraph(verse);
+            updateQuery(verse);
+            updateTable(verse);
+        }
     });
     updateQuery(verse);
 }

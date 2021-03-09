@@ -13,9 +13,10 @@
 # limitations under the License.
 """Flask application for serving the cross-reference graph."""
 
+import itertools
 import json
 import logging
-from typing import Dict, List
+from typing import Dict, Iterable, List, Tuple
 from urllib import parse
 
 import flask
@@ -29,6 +30,15 @@ Elements = Dict[str, List[Dict[str, Dict[str, str]]]]
 
 URL_BASE = 'https://www.churchofjesuschrist.org/study/scriptures/'
 
+BOOK_ORDER = dict(
+    zip(
+        itertools.chain(graph_lib.VOLUMES['Old Testament'],
+                        graph_lib.VOLUMES['New Testament'],
+                        graph_lib.VOLUMES['Book of Mormon'],
+                        graph_lib.VOLUMES['Doctrine and Covenants'],
+                        graph_lib.VOLUMES['Pearl of Great Price']),
+        range(len(graph_lib.BOOKS_SHORT))))
+
 
 def load_graph() -> nx.DiGraph:
     """Loads the static cross-reference graph."""
@@ -38,6 +48,19 @@ def load_graph() -> nx.DiGraph:
 
 
 GRAPH = load_graph()
+
+
+def get_edges(verse: str) -> Tuple[List[str], List[str]]:
+    """Fetches the incoming and outgoing edges for a verse."""
+    incoming = []
+    for source, target in GRAPH.in_edges(verse):
+        assert target == verse
+        incoming.append(source)
+    outgoing = []
+    for source, target in GRAPH.out_edges(verse):
+        assert source == verse
+        outgoing.append(target)
+    return incoming, outgoing
 
 
 @app.route('/elements', methods=['POST'])
@@ -55,30 +78,29 @@ def get_elements() -> str:
 def _get_elements(verse: str) -> Elements:
     """Fetches the neighborhood around a verse."""
     unique_nodes = {verse}
-    edges = []
-    for source, target in GRAPH.in_edges(verse):
-        assert target == verse
-        unique_nodes.add(source)
-        edges.append({
-            'data': {
-                'id': f'{source} -> {target}',
-                'source': source,
-                'target': target
-            }
-        })
-    for source, target in GRAPH.out_edges(verse):
-        assert source == verse
-        unique_nodes.add(target)
-        edges.append({
-            'data': {
-                'id': f'{source} -> {target}',
-                'source': source,
-                'target': target
-            }
-        })
+    incoming, outgoing = get_edges(verse)
+    unique_nodes.update(incoming)
+    unique_nodes.update(outgoing)
     nodes = []
     for node in unique_nodes:
         nodes.append({'data': {'id': node}})
+    edges = []
+    for node in incoming:
+        edges.append({
+            'data': {
+                'id': f'{node} -> {verse}',
+                'source': node,
+                'target': verse,
+            }
+        })
+    for node in outgoing:
+        edges.append({
+            'data': {
+                'id': f'{verse} -> {node}',
+                'source': verse,
+                'target': node,
+            }
+        })
     return {'nodes': nodes, 'edges': edges}
 
 
@@ -107,12 +129,11 @@ def get_table() -> str:
         'incoming': [],
         'outgoing': [],
     }
-    for source, target in GRAPH.in_edges(verse):
-        assert target == verse
-        args['incoming'].append((source, get_verse_url(source)))
-    for source, target in GRAPH.out_edges(verse):
-        assert source == verse
-        args['outgoing'].append((target, get_verse_url(target)))
+    incoming, outgoing = get_edges(verse)
+    args['incoming'] = [(source, get_verse_url(source))
+                        for source in sort_verses(incoming)]
+    args['outgoing'] = [(target, get_verse_url(target))
+                        for target in sort_verses(outgoing)]
     return flask.jsonify(flask.render_template('table.html', **args))
 
 
@@ -141,6 +162,17 @@ def get_verse_url(verse: str) -> str:
     i = node['verse']
     return parse.urljoin(URL_BASE,
                          f'{volume}/{book}/{chapter}.{i}?lang=eng#p{i}#{i}')
+
+
+def sort_verses(verses: Iterable[str]) -> List[str]:
+    """Sorts verses in Standard Works order."""
+    return sorted(verses, key=_sort_verses)
+
+
+def _sort_verses(verse: str) -> Tuple[int, int, int]:
+    """Key function for sort_verses."""
+    node = GRAPH.nodes[verse]
+    return BOOK_ORDER[node['book']], node['chapter'], node['verse']
 
 
 if __name__ == '__main__':
