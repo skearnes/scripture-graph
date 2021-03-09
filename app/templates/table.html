@@ -19,7 +19,7 @@
 <body>
 <div style="padding: 10px;">
 <h3 style="margin-top: 0;"><a href="{{ verse_url }}" rel="noopener noreferrer" target="_blank">{{ verse }}</a></h3>
-<h4>Verses that reference {{ verse }}</h4>
+<p>Verses that reference {{ verse }}</p>
 {% if incoming %}
 <ul>
     {% for name, url in incoming %}
@@ -27,7 +27,7 @@
     {% endfor %}
 </ul>
 {% endif %}
-<h4>Verses that are referenced by {{ verse }}</h4>
+<p>Verses that are referenced by {{ verse }}</p>
 {% if outgoing %}
 <ul>
     {% for name, url in outgoing %}
