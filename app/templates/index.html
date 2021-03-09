@@ -50,30 +50,37 @@
 <body>
 <div id="container">
     <div id="tree"></div>
-    <div id="cy"></div>
-    <div id="table"></div>
-    <div id="help">
-        <h2>Instructions:</h2>
-        <ul>
-            <li>Use the menu on the left to select a verse.</li>
-            <li>Click on any verse in the graph to re-focus on that node.</li>
-            <li>Click the links on the right to view the verse text at <a href="https://www.churchofjesuschrist.org/study/scriptures?lang=eng">ChurchofJesusChrist.org</a>.</li>
-        </ul>
+    <div id="graph">
+        <div id="cy"></div>
+        <div id="cy_help"><b>(Click on a verse to re-focus the graph.)</b></div>
     </div>
-    <div id="footer">
+    <div id="table"></div>
+    <div id="details">
+        <hr>
         <div>
         <a href="http://creativecommons.org/licenses/by-sa/4.0/" rel="license"><img
                 alt="Creative Commons License"
                 src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
                 style="border-width: 0px; vertical-align: middle;"/></a>&nbsp;&nbsp;<span
-            style="font-size: small; vertical-align: middle;">Steven Kearnes, 2021</span>
+            style="font-size: small; vertical-align: middle;">Steven M. Kearnes, 2021</span>
         </div>
-        <div style="font-size: small; width: 360px;">
-            © Copyright 2021 Steven Kearnes. This work is licensed under a
+        <small>
+            © Copyright 2021 Steven M. Kearnes.
+            <br>
+            This work is licensed under a
             <a href="http://creativecommons.org/licenses/by-sa/4.0/" rel="license">Creative
                 Commons Attribution-ShareAlike 4.0 International License</a>.
-        </div>
-</div>
+        </small>
+        <br>
+        <small>
+        This work is not an official publication of The Church of Jesus Christ
+        of Latter-day Saints. This work is neither made, provided, approved, nor
+        endorsed by Intellectual Reserve, Inc. or The Church of Jesus Christ of
+        Latter-day Saints. Any content or opinions expressed, implied or
+        included herein are solely my own and not those of Intellectual Reserve,
+        Inc. or The Church of Jesus Christ of Latter-day Saints.
+        </small>
+    </div>
 </div>
 <script>
     initTree(VERSE);

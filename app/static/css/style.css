@@ -26,12 +26,19 @@
     grid-column: 1;
 }
 
-#cy {
+#graph {
     grid-row: 1;
     grid-column: 2;
+}
+
+#cy {
     width: 500px;
     height: 500px;
     border: solid 1px black;
+}
+
+#cy_help {
+    text-align: center;
 }
 
 #table {
@@ -49,13 +56,8 @@ ul.fancytree-container {
     border: none;
 }
 
-#help {
+#details {
     grid-row: 2;
     grid-column-start: 1;
     grid-column-end: 3;
-}
-
-#footer {
-    grid-row: 3;
-    grid-column: 1;
 }
