@@ -22,9 +22,11 @@ let cy = null;
 // History handler to correctly process the back button.
 window.onpopstate =
     function(event) {
+    const verse = event.state.verse;
     // NOTE(kearnes): Do not call updateQuery.
-    updateGraph(event.state.verse);
-    updateTable(event.state.verse);
+    updateGraph(verse);
+    updateTree(verse);
+    updateTable(verse);
 }
 
 /**
@@ -123,6 +125,7 @@ function initGraph(verse) {
         const queryParams = new URLSearchParams(window.location.search);
         if (queryParams.get('verse') !== verse) {
             updateGraph(verse);
+            updateTree(verse);
             updateQuery(verse);
             updateTable(verse);
         }

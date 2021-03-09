@@ -33,6 +33,9 @@ function initTree(verse) {
         selectMode: 1,
         tabindex: '0',
         // Callbacks.
+        init: function(event, data) {
+            updateTree(verse);
+        },
         activate: function(event, data) {
             updateGraph(data.node.key);
             updateTable(data.node.key);
@@ -43,10 +46,17 @@ function initTree(verse) {
             }
         }
     });
-    // TODO(kearnes): This doesn't work.
+}
+
+/**
+ * Updates the selected node in the navigation sidebar.
+ * @param {string} verse
+ */
+function updateTree(verse) {
     const tree = $.ui.fancytree.getTree('#tree');
     const node = tree.getNodeByKey(verse);
     if (node !== null) {
-        node.setSelected(true);
+        node.setActive();
+        node.makeVisible();
     }
 }
