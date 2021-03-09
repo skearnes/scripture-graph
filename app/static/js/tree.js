@@ -38,6 +38,7 @@ function initTree(verse) {
         },
         activate: function(event, data) {
             updateGraph(data.node.key);
+            updateQuery(data.node.key);
             updateTable(data.node.key);
         },
         beforeActivate: function(event, data) {

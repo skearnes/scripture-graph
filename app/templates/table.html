@@ -17,6 +17,7 @@
 
 <html lang="en">
 <body>
+<div style="padding: 10px;">
 <h3 style="margin-top: 0;"><a href="{{ verse_url }}" rel="noopener noreferrer" target="_blank">{{ verse }}</a></h3>
 <h4>Verses that reference {{ verse }}</h4>
 {% if incoming %}
@@ -34,4 +35,5 @@
     {% endfor %}
 </ul>
 {% endif %}
+</div>
 </body>

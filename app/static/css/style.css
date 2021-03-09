@@ -53,7 +53,7 @@ ul.fancytree-container {
     height: 495px;
     overflow: auto;
     font-size: 11pt;
-    border: none;
+    border: solid 1px black;
 }
 
 #details {
