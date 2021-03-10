@@ -64,8 +64,8 @@ function initTree(verse) {
         },
         activate: function(event, data) {
             updateGraph(data.node.key);
-            updateQuery(data.node.key);
             updateTable(data.node.key);
+            updateQuery(data.node.key);
         },
         beforeActivate: function(event, data) {
             if (data.node.isFolder()) {
@@ -83,8 +83,11 @@ function updateTree(verse) {
     const tree = $.ui.fancytree.getTree('#tree');
     const node = tree.getNodeByKey(verse);
     if (node !== null) {
-        node.setActive();
-        node.makeVisible();
+        const options = {
+            noEvents: true,
+        };
+        node.setActive(true, options);
+        node.makeVisible(options);
     }
 }
 
@@ -170,10 +173,10 @@ function initGraph(verse) {
         const verse = event.target.id();
         const queryParams = new URLSearchParams(window.location.search);
         if (queryParams.get('verse') !== verse) {
-            updateGraph(verse);
             updateTree(verse);
-            updateQuery(verse);
+            updateGraph(verse);
             updateTable(verse);
+            updateQuery(verse);
         }
     });
     updateQuery(verse);
@@ -226,6 +229,9 @@ async function updateTable(verse) {
     $('#table').html(table);
 }
 
+/**
+ * Initializes the entire page.
+ */
 function initAll() {
     const queryParams = new URLSearchParams(window.location.search);
     let verse;
