@@ -107,9 +107,7 @@ def _get_elements(verse: str) -> Elements:
 @app.route('/', methods=['GET'])
 def root() -> str:
     """Shows the main graph exploration page."""
-    verse = flask.request.args.get('verse', type=str, default='John 3:16')
-    app.logger.info(f'Received request for {verse}')
-    return flask.render_template('index.html', verse=verse)
+    return flask.render_template('index.html')
 
 
 @app.route('/tree')

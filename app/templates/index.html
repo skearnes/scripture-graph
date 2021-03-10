@@ -42,12 +42,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.38.0/jquery.fancytree-all-deps.min.js" integrity="sha512-JZIbVDpY75RDvgw47H+qr7U7heyZpgp/JKd9W36fpCsDG8zQEDNpWXpd2dvHfcSdgI3SbxCHNQSP6StaZC7YxQ==" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.38.0/skin-win8-n/ui.fancytree.min.css" integrity="sha512-6387+1/KPWwIytDdqK6t5PNiF2BkJgvaFxnfifzq69Pg4ezZqhr/KLt2xmz2ZpOqMKxTnEFGbeE+HhPUw5elnQ==" crossorigin="anonymous" />
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script>const VERSE = '{{ verse }}'.replace(/^D&amp;C/, 'D&C');</script>
-    <script src="{{ url_for('static', filename='js/graph.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/tree.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/table.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </head>
-<body>
+<body onload="initAll()">
 <h1 style="margin-bottom: 0;">Connection Explorer</h1>
 <p style="margin-top: 0;"><em>...brought to you by <a href="https://welding-links.blogspot.com/2020/12/scratching-surface.html">Welding Links</a></em></p>
 <div id="container">
@@ -84,10 +81,5 @@
         </small>
     </div>
 </div>
-<script>
-    initTree(VERSE);
-    initGraph(VERSE);
-    updateTable(VERSE);
-</script>
 </body>
 </html>
