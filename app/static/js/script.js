@@ -20,8 +20,7 @@
 let cy = null;
 
 // History handler to correctly process the back button.
-window.onpopstate =
-    function(event) {
+window.onpopstate = function(event) {
     const verse = event.state.verse;
     // NOTE(kearnes): Do not call updateQuery.
     updateGraph(verse);
@@ -59,7 +58,7 @@ function initTree(verse) {
         selectMode: 1,
         tabindex: '0',
         // Callbacks.
-        init: function(event, data) {
+        init: function() {
             updateTree(verse);
         },
         activate: function(event, data) {
@@ -232,7 +231,7 @@ async function updateTable(verse) {
 /**
  * Initializes the entire page.
  */
-function initAll() {
+function initExplorer() {
     const queryParams = new URLSearchParams(window.location.search);
     let verse;
     if (queryParams.has('verse')) {
