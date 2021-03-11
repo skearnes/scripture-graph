@@ -20,7 +20,7 @@ body {
 
 #container {
     display: grid;
-    grid-template-columns: 220px 500px 300px;
+    grid-template-columns: 235px 500px 300px;
     grid-column-gap: 10px;
     grid-row-gap: 10px;
 }
@@ -36,7 +36,7 @@ body {
 }
 
 #cy {
-    width: 500px;
+    width: auto;
     height: 500px;
     border: solid 1px black;
 }
@@ -52,11 +52,15 @@ body {
     overflow: auto;
 }
 
+#table-content {
+    padding: 10px;
+}
+
 /* See http://wwwendt.de/tech/fancytree/demo/sample-scroll.html. */
 ul.fancytree-container {
     height: 495px;
     overflow: auto;
-    font-size: 11pt;
+    font-size: medium;
     border: solid 1px black;
 }
 
