@@ -37,11 +37,12 @@ email: contact@welding-links.org
 description: >- # this means to ignore newlines until "baseurl:"
   Exploring the data science of scripture.
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://blog.welding-links.org" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://welding-links.org" # the base hostname & protocol for your site, e.g. http://example.com
+permalink: :year/:title
 github_username:  skearnes
 
 # Build settings
-theme: jekyll-theme-cayman
+theme: minima
 plugins:
   - jekyll-feed
 
