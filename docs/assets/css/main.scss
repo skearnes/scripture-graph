@@ -1,4 +1,6 @@
-@charset "utf-8";
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
 /**
  * Copyright 2021 Steven Kearnes
  *
@@ -15,14 +17,31 @@
  * limitations under the License.
  */
 
----
-# Only the main Sass file needs front matter (the dashes are enough)
----
-
+@charset "utf-8";
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
-@import "custom";
 
-.foo {
+blockquote {
+  border: none;
+  font-style: normal;
+}
+
+table {
+  margin: 1em auto;
+  font-size: 1em;
+  width: fit-content;
+}
+
+img {
   display: block;
+  margin: 0 auto;
+}
+
+.note {
+  font-size: small !important;
+  font-style: italic;
+}
+
+.right {
+  text-align: right;
 }

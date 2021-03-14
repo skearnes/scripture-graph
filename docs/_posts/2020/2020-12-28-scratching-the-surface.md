@@ -2,6 +2,8 @@
 title: "Scratching the Surface"
 ---
 
+## Introduction
+
 In the
 [standard works](https://www.churchofjesuschrist.org/study/manual/gospel-topics/standard-works?lang=eng)
 of The Church of Jesus Christ of Latter-day Saints, thousands of
@@ -20,8 +22,7 @@ October 1982 General Conference.)
 Elder Packer also discussed the immense technical challenges in 1977 when
 discussions with publishers began:
 
-{:.quote}
-The technical problems seemed insurmountable. Computers could help, but there
+> The technical problems seemed insurmountable. Computers could help, but there
 was always the human factor. How could you cross-reference the Bible with any
 other book? To cross-reference it with the three volumes was to require tens
 of thousands of footnotes. Thereafter there would be hundreds of thousands of
