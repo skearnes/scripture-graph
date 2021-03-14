@@ -1,8 +1,12 @@
 # scripture-graph
 
-See blog posts using this code at [Welding Links](https://welding-links.blogspot.com/).
+See blog posts using this code at [Welding Links](https://welding-links.org/blog).
 
-# Quick start
+## Connection Explorer
+
+Visit https://graph.welding-links.org to explore cross-references in an interactive web app.
+
+## Quick start
 
 ```shell
 # Install the package.
@@ -16,7 +20,7 @@ python setup.py install
 python scripture_graph/build_graph.py --input_pattern="*.epub" --output=scripture_graph.graphml
 ```
 
-# Graph visualization
+## Graph visualization
 
 Generated graphs can be visualized interactively with various tools; see the
 [recommendations](https://networkx.org/documentation/stable/reference/drawing.html#drawing)
