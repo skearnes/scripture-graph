@@ -15,7 +15,6 @@
  */
 
 // Disable magnific-popup.
-// See https://github.com/dimsemenov/Magnific-Popup/issues/645#issuecomment-96622789.
-$(document).ready(function () {
-    $('.image-popup').off('click');
-});
+// See
+// https://github.com/dimsemenov/Magnific-Popup/issues/645#issuecomment-96622789.
+$(document).ready(function() { $('.image-popup').off('click'); });
