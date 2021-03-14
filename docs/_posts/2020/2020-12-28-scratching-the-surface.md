@@ -169,7 +169,7 @@ Earlier, I showed a simple graph with two nodes and a single edge. We can scale
 up and build a graph containing all verses and cross-references in the standard
 works. If you thought the heat maps above were complicated, take a look at this:
 
-[![](/assets/2020-12-28/graph.png)](/assets/2020-12-28/graph.png)
+![](/assets/2020-12-28/graph.png)
 
 This is a bit overwhelming, but we can zoom in on one of the appendages to get a
 better idea of the structure. The group of nodes below contains verses referring

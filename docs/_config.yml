@@ -107,6 +107,11 @@ analytics:
     anonymize_ip         : # true, false (default)
 
 
+# JavaScript
+after_footer_scripts:
+  - /assets/js/custom.js
+
+
 # Site Author
 author:
   name             : "Steven Kearnes"
