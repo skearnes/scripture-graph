@@ -111,8 +111,8 @@ analytics:
 author:
   name             : "Steven Kearnes"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "I am an **amazing** person."
-  location         : "Somewhere"
+  bio              :
+  location         :
   email            :
   links:
     - label: "Email"
@@ -290,7 +290,7 @@ defaults:
       type: pages
     values:
       layout: single
-      author_profile: true
+      author_profile: false
   # _posts
   - scope:
       path: ""
@@ -302,8 +302,8 @@ defaults:
       toc_label: "Sections"
       toc_icon: "map-signs"
       toc_sticky: true
-      author_profile: true
+      author_profile: false
       read_time: false
       comments: false
-      share: true
+      share: false
       related: true

@@ -76,7 +76,7 @@ The plot below shows the
 [CDF](https://en.wikipedia.org/wiki/Cumulative_distribution_function)
 for references to all verses.
 
-<img alt="" style="width: 80%;" src="/assets/2020-12-28/count-cdf.png" />
+![](/assets/2020-12-28/count-cdf.png)
 
 The verses with the most references in each of the standard works are listed in
 the table below. Note that the reference counts are for "incoming" edges
@@ -130,7 +130,7 @@ referenced once. Notably, the Pearl of Great Price has the fewest references
 among all the standard works (1435), but the highest number of references per
 verse (2.3).
 
-<img alt="" style="width: 80%;" src="/assets/2020-12-28/count-bar.png" />
+![](/assets/2020-12-28/count-bar.png)
 
 ## Reference Patterns
 
@@ -142,14 +142,14 @@ bottom right) reports the number of references from that volume to itself
 pair; for example, the third entry in the first row shows the number of
 references from the Old Testament to the Book of Mormon.
 
-<img alt="" style="width: 60%;" src="/assets/2020-12-28/absolute-volumes.png" />
+![](/assets/2020-12-28/absolute-volumes.png)
 
 As before, we can also compute "relative" reference counts: the number of
 references divided by the number of verses. Now we see that, on average, each
 verse in the Book of Mormon is referenced 1.2 times by other verses in the Book
 of Mormon and 0.03 times by verses in the Pearl of Great Price.
 
-<img alt="" style="width: 60%;" src="/assets/2020-12-28/relative-volumes.png" />
+![](/assets/2020-12-28/relative-volumes.png)
 
 We can also construct absolute and relative heat maps for all the books in
 the standard works (note that the Doctrine and Covenants is treated as a single
