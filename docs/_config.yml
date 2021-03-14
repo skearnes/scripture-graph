@@ -104,7 +104,6 @@ analytics:
   provider               : "google-gtag"
   google:
     tracking_id          : "G-D0WDY4C7H5"
-    anonymize_ip         : true # true, false (default)
 
 
 # JavaScript
