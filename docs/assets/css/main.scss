@@ -57,10 +57,6 @@ img {
   font-style: italic;
 }
 
-.right {
-  text-align: right;
-}
-
 a:link {
   text-decoration: none;
 }
@@ -95,6 +91,18 @@ a:active {
   background-color: #cfe2f3;
 }
 
+.sh {
+  background-color: #d9d2e9;
+}
+
+.left {
+  text-align: left;
+}
+
 .center {
   text-align: center;
+}
+
+.right {
+  text-align: right;
 }
