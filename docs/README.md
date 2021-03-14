@@ -1,5 +1,5 @@
-This directory contains code and other material used in blog posts.
-See https://welding-links.blogspot.com.
+This directory contains code and other material used in blog posts and other
+site content. See https://welding-links.org.
 
 [![Creative Commons License](https://i.creativecommons.org/l/by-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-sa/4.0/)
 
