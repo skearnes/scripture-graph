@@ -25,6 +25,7 @@ $ python build_graph.py \
 
 import dataclasses
 import glob
+import json
 
 from absl import app
 from absl import flags
@@ -46,6 +47,9 @@ def write_graph(graph: nx.Graph, filename: str):
         nx.write_gml(graph, filename)
     elif filename.endswith('.graphml'):
         nx.write_graphml(graph, filename)
+    elif filename.endswith('.json'):
+        with open(filename, 'w') as f:
+            json.dump(nx.node_link_data(graph), f)
     else:
         raise NotImplementedError(filename)
 

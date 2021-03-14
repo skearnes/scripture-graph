@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Scratching the Surface"
 ---
 
@@ -9,8 +8,7 @@ of The Church of Jesus Christ of Latter-day Saints, thousands of
 cross-references have been manually annotated by volunteers in fulfillment of
 prophecy:
 
-{:.quote} 
-The stick or record of Judah—the Old Testament and the New Testament—and the 
+> The stick or record of Judah—the Old Testament and the New Testament—and the 
 stick or record of Ephraim—the Book of Mormon, which is another testament of 
 Jesus Christ—are now woven together in such a way that as you pore over one you 
 are drawn to the other; as you learn from one you are enlightened by the other. 

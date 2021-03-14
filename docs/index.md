@@ -1,5 +1,6 @@
 ---
-layout: home
+permalink: /
+layout: default
 ---
 
 Test

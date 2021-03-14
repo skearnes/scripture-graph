@@ -1,0 +1,5 @@
+main:
+  - title: "Blog"
+    url: /blog/
+  - title: "Connection Explorer"
+    url: https://graph.welding-links.org
