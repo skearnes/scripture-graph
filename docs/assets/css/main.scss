@@ -1,6 +1,6 @@
 ---
-# Only the main Sass file needs front matter (the dashes are enough)
 ---
+
 /**
  * Copyright 2021 Steven Kearnes
  *
@@ -17,11 +17,10 @@
  * limitations under the License.
  */
 
-$global-transition : none;
+$global-transition: none;
 
-@charset "utf-8";
-@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
-@import "minimal-mistakes"; // main partials
+@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}";
+@import "minimal-mistakes";
 
 blockquote {
   border: none;
@@ -30,8 +29,22 @@ blockquote {
 
 table {
   margin: 1em auto;
-  font-size: 1em;
+  font-size: 0.8em;
   width: fit-content;
+  border: 0;
+}
+
+thead {
+  border: 0;
+  background-color: unset;
+}
+
+th {
+  text-align: center;
+}
+
+td {
+  border: 0;
 }
 
 img {
@@ -40,7 +53,7 @@ img {
 }
 
 .note {
-  font-size: small !important;
+  font-size: 0.75em !important;
   font-style: italic;
 }
 
@@ -49,13 +62,39 @@ img {
 }
 
 a:link {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 a:visited {
-    text-decoration: none;
+  text-decoration: none;
 }
 
-a:hover {}
+a:hover {
+}
 
-a:active {}
+a:active {
+}
+
+.ot {
+  background-color: #f4cccc;
+}
+
+.nt {
+  background-color: #fce5cd;
+}
+
+.bom {
+  background-color: #fff2cc;
+}
+
+.dc {
+  background-color: #d9ead3;
+}
+
+.pgp {
+  background-color: #cfe2f3;
+}
+
+.center {
+  text-align: center;
+}

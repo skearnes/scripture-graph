@@ -2,8 +2,6 @@
 title: "Scratching the Surface"
 ---
 
-## Introduction
-
 In the
 [standard works](https://www.churchofjesuschrist.org/study/manual/gospel-topics/standard-works?lang=eng)
 of The Church of Jesus Christ of Latter-day Saints, thousands of

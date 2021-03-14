@@ -36,7 +36,7 @@ subtitle                 : "Exploring the data science of scripture"
 name                     : "Steven Kearnes"
 description              : "Exploring the data science of scripture."
 url                      : "https://welding-links.org"
-baseurl                  : # the subpath of your site, e.g. "/blog"
+baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "skearnes/scripture-graph"
 github                   : [metadata]
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
@@ -303,7 +303,7 @@ defaults:
     values:
       layout: single
       show_date: true
-      toc: true
+      toc: false
       toc_label: "Sections"
       toc_icon: "map-signs"
       toc_sticky: true
