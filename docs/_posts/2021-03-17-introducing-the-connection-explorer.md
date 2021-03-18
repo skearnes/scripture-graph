@@ -2,12 +2,12 @@
 title: "Introducing the Connection Explorer"
 ---
 
-I'm happy to present the Connection Explorer, an interactive tool for
+I'm happy to present the *Connection Explorer*, an interactive tool for
 exploring the cross-reference graph and other scriptural connections.
 
 The tool can be accessed by clicking the 
 [Connection Explorer](https://graph.welding-links.org) link here
-or at the top of the page.
+or at the top of the page. Please give it a try!
 
 ## Overview
 
@@ -54,8 +54,8 @@ The Connection Explorer makes use of several third-party libraries:
 * [jQuery](https://jquery.com/)
   
 {:.note}
-The code used for the analysis and figures in this post is available on
-[GitHub](https://github.com/skearnes/scripture-graph). Additional images were
+The code for the Connection Explorer is available on
+[GitHub](https://github.com/skearnes/scripture-graph). Images for this post were
 generated with Google Drawings.
   
 [![Creative Commons License](https://i.creativecommons.org/l/by-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-sa/4.0/)
