@@ -1,6 +1,7 @@
 ---
-permalink: /
-layout: default
+layout: splash
 ---
 
-Test
+## Welcome!
+
+Please use the links in the header to look around.
