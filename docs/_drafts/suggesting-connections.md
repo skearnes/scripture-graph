@@ -1,5 +1,5 @@
 ---
-title: "Suggesting Connections"
+title: "Suggesting Connections (Part I)"
 ---
 
 The Standard Works contain 41&nbsp;995 verses and 45&nbsp;985 cross-references
@@ -61,13 +61,14 @@ the [adjacency matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) of the
 undirected graph. There is an entry in the vector for each verse in the graph,
 with a 1 where two verses are connected and a 0 otherwise. Conceptually, the
 nonzero entries in this vector define a set of neighbors; for example, the
-neighborhood set for Helaman 5:8 is {1 Ne. 15:36, Hel. 8:25, 3 Ne. 13:20}.
+neighborhood set for Hel. 5:8 is {1 Ne. 15:36, Hel. 8:25, 3 Ne. 13:20}.
 
 The [Jaccard coefficient](https://en.wikipedia.org/wiki/Jaccard_index) is a
 common metric for comparing binary vectors or sets. It is defined as the set
 intersection divided by the set union; in our case, this is the number of
 neighbors two verses have in common divided by the total number of neighbors for
-both verses (after removing duplicates).
+both verses (after removing duplicates). The metric equals zero when there are
+no neighbors in common, and one when all neighbors are shared.
 
 Consider [2 Ne. 26:24](https://www.churchofjesuschrist.org/study/scriptures/bofm/2-ne/26.24?lang=eng#p24#24)
 and [3 Ne. 9:14](https://www.churchofjesuschrist.org/study/scriptures/bofm/3-ne/9.14?lang=eng#p14#14),
@@ -78,20 +79,43 @@ Ne. 9:5, Jacob 5:41, Alma 26:37} and {Isa. 59:16, John 3:16, 1 Ne. 1:14, 2 Ne.
 have one neighbor in common (John 3:16) and 14 unique neighbors between them, so
 the Jaccard similarity is 1 / 14 = 0.07.
 
-It's rather time-consuming to compute the Jaccard coefficient for all verse 
-pairs due to the size of the graph. One trick, borrowed from cheminformatics, is
-to [fold](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2536658/)
-the vectors into smaller representations to speed up the metric calculations.
-The simplest approach is to replace a vector A of length N with a vector B of
-length M where B\[i % M\] = OR(A\[i\], B\[i % M\]). Bit collisions can lead to
-unexpected connections, but collisions are unlikely for moderate values of M
-since the average number of bits set for each verse is small (1.3, or 2.7 for 
-verses with at least one connection).
+As an aside, identifying connections this way has an interesting property: it is
+iterable. If we take add the top-ranked connections to the existing set, we can 
+repeat the analysis to suggest another new set of connections. If we had the 
+patience, we could repeat this procedure until the set of connections doesn't 
+change anymore. (For simplicity, we will not iterate in this post.)
 
-Identifying connections this way has an interesting property: it is iterable. If
-we take the top-ranked connections as truth, we can add them to the existing set
-of connections and repeat the analysis to suggest another new set of
-connections. If we had the patience, we could repeat this procedure until the
-set of connections doesn't change anymore.
+## Analysis
 
-### Looking at the text
+Since over half of the nodes in the graph have no incoming or outgoing
+references, most of the pairwise Jaccard similarity values are zero. In fact,
+only 95&nbsp;247 verse pairs have any neighbors in common (~1% of all pairs). 
+Of these, most similarities are much less than one:
+
+![](/assets/2021-03-21/jaccard-cdf.png)
+
+The largest number of neighbors in common is eight, for D&C 18:26&ndash;D&C 90:9
+and Mosiah 21:15&ndash;D&C 101:7. The largest pool of unique neighbors goes to
+1 Ne. 19:10&ndash;2 Ne. 25:20 with 59, although they only share two of these
+neighbors.
+
+### Verses with the same set of neighbors
+
+More than 1700 of these nonzero pairs actually share *all* of their neighbors.
+For example, Deut. 5:17 and Matt. 5:21 do not reference one another, but they
+both have connections to Mosiah 13:21, 3 Ne. 12:21 and D&C 42:18.
+
+## Thus we see
+
+**Stay tuned for Part II of this post, where we will use machine learning to
+measure the textual similarity between verses and suggest new connections.**
+
+{:.note}
+The code used for the analysis and figures in this post is available on
+[GitHub](https://github.com/skearnes/scripture-graph).
+
+[![Creative Commons License](https://i.creativecommons.org/l/by-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-sa/4.0/)
+
+{:.note}
+© Copyright 2021 Steven Kearnes. This work is licensed under a
+[Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
