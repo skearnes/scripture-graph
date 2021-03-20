@@ -78,17 +78,20 @@ Ne. 9:5, Jacob 5:41, Alma 26:37} and {Isa. 59:16, John 3:16, 1 Ne. 1:14, 2 Ne.
 have one neighbor in common (John 3:16) and 14 unique neighbors between them, so
 the Jaccard similarity is 1 / 14 = 0.07.
 
-Identifying connections this way has an interesting property: it is iterable.
-If we take the top-ranked connections as truth, we can add them to the existing
-set of connections and repeat the analysis to suggest another new set of
+It's rather time-consuming to compute the Jaccard coefficient for all verse 
+pairs due to the size of the graph. One trick, borrowed from cheminformatics, is
+to [fold](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2536658/)
+the vectors into smaller representations to speed up the metric calculations.
+The simplest approach is to replace a vector A of length N with a vector B of
+length M where B\[i % M\] = OR(A\[i\], B\[i % M\]). Bit collisions can lead to
+unexpected connections, but collisions are unlikely for moderate values of M
+since the average number of bits set for each verse is small (1.3, or 2.7 for 
+verses with at least one connection).
+
+Identifying connections this way has an interesting property: it is iterable. If
+we take the top-ranked connections as truth, we can add them to the existing set
+of connections and repeat the analysis to suggest another new set of
 connections. If we had the patience, we could repeat this procedure until the
-set of connections doesn't change anymore. It's rather time-consuming to run
-each round of comparisons due to the size of the graph; one trick, borrowed from
-cheminformatics, is to [fold](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2536658/)
-the vectors into smaller representations to speed up the metric calculations. 
-The simplest approach is to replace a vector A of length N with a vector B of 
-length M where B[\i % M\] = OR(A\[i\], B\[i % M\]). Bit collisions can lead to 
-unexpected connections, but these are likely to be rare since the average number
-of bits set for each verse is small.
+set of connections doesn't change anymore.
 
 ### Looking at the text
