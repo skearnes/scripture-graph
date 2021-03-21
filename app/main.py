@@ -16,7 +16,7 @@
 import itertools
 import json
 import logging
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Set, Tuple
 from urllib import parse
 
 import flask
@@ -50,17 +50,26 @@ def load_graph() -> nx.DiGraph:
 GRAPH = load_graph()
 
 
-def get_edges(verse: str) -> Tuple[List[str], List[str]]:
+def get_edges(verse: str) -> Tuple[Set[str], Set[str], Set[str]]:
     """Fetches the incoming and outgoing edges for a verse."""
-    incoming = []
+    incoming = set()
+    outgoing = set()
+    suggested = set()
     for source, target in GRAPH.in_edges(verse):
         assert target == verse
-        incoming.append(source)
-    outgoing = []
+        kind = GRAPH.edges[(source, target)].get('kind')
+        if kind:
+            suggested.add(source)
+        else:
+            incoming.add(source)
     for source, target in GRAPH.out_edges(verse):
         assert source == verse
-        outgoing.append(target)
-    return incoming, outgoing
+        kind = GRAPH.edges[(source, target)].get('kind')
+        if kind:
+            suggested.add(target)
+        else:
+            outgoing.add(target)
+    return incoming, outgoing, suggested
 
 
 @app.route('/elements', methods=['POST'])
@@ -78,27 +87,40 @@ def get_elements() -> str:
 def _get_elements(verse: str) -> Elements:
     """Fetches the neighborhood around a verse."""
     unique_nodes = {verse}
-    incoming, outgoing = get_edges(verse)
+    incoming, outgoing, suggested = get_edges(verse)
     unique_nodes.update(incoming)
     unique_nodes.update(outgoing)
+    unique_nodes.update(suggested)
     nodes = []
     for node in unique_nodes:
         nodes.append({'data': {'id': node}})
     edges = []
-    for node in incoming:
+    for source in incoming:
         edges.append({
             'data': {
-                'id': f'{node} -> {verse}',
-                'source': node,
+                'id': f'{source} -> {verse}',
+                'source': source,
                 'target': verse,
             }
         })
-    for node in outgoing:
+    for target in outgoing:
+        edges.append({
+            'data': {
+                'id': f'{verse} -> {target}',
+                'source': verse,
+                'target': target,
+            }
+        })
+    for node in suggested:
+        # NOTE(kearnes): Only add the edge in one direction to avoid overlapping
+        # lines in the graph display. The edge[kind] selector adds arrows at
+        # both ends of this edge so it appears bidirectional.
         edges.append({
             'data': {
                 'id': f'{verse} -> {node}',
                 'source': verse,
                 'target': node,
+                'kind': 'suggested',
             }
         })
     return {'nodes': nodes, 'edges': edges}
@@ -124,14 +146,14 @@ def get_table() -> str:
     args = {
         'verse': verse.replace(' ', '\xa0'),  # Non-breaking space.
         'verse_url': get_verse_url(verse),
-        'incoming': [],
-        'outgoing': [],
     }
-    incoming, outgoing = get_edges(verse)
+    incoming, outgoing, suggested = get_edges(verse)
     args['incoming'] = [(source, get_verse_url(source))
                         for source in sort_verses(incoming)]
     args['outgoing'] = [(target, get_verse_url(target))
                         for target in sort_verses(outgoing)]
+    args['suggested'] = [(node, get_verse_url(node))
+                         for node in sort_verses(suggested)]
     return flask.jsonify(flask.render_template('table.html', **args))
 
 
