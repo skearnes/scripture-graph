@@ -28,13 +28,13 @@ for, different flavors of similarity will be more or less relevant.
 Unfortunately, the existing cross-references do not have any notion of *kind*;
 different notions of similarity are mixed and matched without any warning.
 Resources like the Topical Guide help to organize references by the type of
-similarity they share; usually these resources are scarcely more than
-concordances, easily approximated by modern keyword searches.
+similarity they share; however, much of their utility is easily approximated
+by modern keyword searches. Ideally we could use data science and machine 
+learning to identify non-obvious connections that go beyond existing tools.
 
-Ideally we could use data science and machine learning to identify non-obvious
-connections that go beyond existing tools. But before I bite off more than I can
-chew, let's start with some simple approaches that can be used to expand the
-existing set of connections (obvious or not).
+Before I bite off more than I can chew, let's start with some simple approaches
+that can be used to expand the existing set of connections (whether obvious or 
+not).
 
 ### Representations and metrics
 
@@ -91,7 +91,8 @@ change anymore. (For simplicity, we will not iterate in this post.)
 
 Since over half of the nodes in the graph have no incoming or outgoing
 references, most of the pairwise Jaccard similarity values are zero. In fact,
-only 95&nbsp;247 verse pairs have any neighbors in common (~1% of all pairs). 
+only 95&nbsp;247 verse pairs have any neighbors in common (~1% of all pairs;
+note that this includes pairs that are already connected by cross-references). 
 Of these, most similarities are much less than one:
 
 ![](/assets/2021-03-21/jaccard-cdf.png)
@@ -110,15 +111,45 @@ both have connections to Mosiah 13:21, 3 Ne. 12:21, and D&C 42:18.
 The vast majority of these pairs share only a single neighbor.
 For instance, Deut. 8:11 and 3 Ne. 28:35 both have a single connection to Hel. 12:2.
 Despite having high Jaccard similarity, these verses are not obviously related, and
-it makes sense to impose an additional constraint on the number of shared
+it seems prudent to impose an additional constraint on the number of shared
 neighbors to avoid spurious connections. Using a minimum of two shared
 neighbors narrows the list to 34 suggested connections with perfect similarity.
 
 ### Non-trivial cases
 
+There are more than 3000 additional pairs with Jaccard similarity between zero
+and one and more than one shared neighbor. As we try to decide which of these
+pairs to suggest as new connections, it is helpful to compare them to pairs
+with existing connections:
 
+![](/assets/2021-03-21/jaccard-box.png)
+
+Surprisingly, the unconnected pairs seem to have greater similarity than
+the connected pairs. This suggests that we should keep all the new pairs.
+To dig deeper, let's consider a few examples:
+
+* [Josh. 2:10](https://www.churchofjesuschrist.org/study/scriptures/ot/josh/2.10?lang=eng#p10#10) and 
+  [Neh. 9:11](https://www.churchofjesuschrist.org/study/scriptures/ot/neh/9.11?lang=eng#p11#11) 
+  have six shared neighbors and a Jaccard similarity of 0.6.
+* [1 Chr. 9:3](https://www.churchofjesuschrist.org/study/scriptures/ot/1-chr/9.3?lang=eng#p3#3) and 
+  [2 Chr. 15:9](https://www.churchofjesuschrist.org/study/scriptures/ot/2-chr/15.9?lang=eng#p9#9) 
+  have three shared neighbors and a Jaccard similarity of 0.75.
+* [1 Ne. 19:10](https://www.churchofjesuschrist.org/study/scriptures/bofm/1-ne/19.10?lang=eng#p10#10) and 
+  [Mosiah 3:5](https://www.churchofjesuschrist.org/study/scriptures/bofm/mosiah/3.5?lang=eng#p5#5) 
+  have two shared neighbors and a Jaccard similarity of 0.04.
+
+To my eyes, the 1 Chr. 9:3&ndash;2 Chr. 15:9 pair is not especially interesting,
+but the other pairs are clearly good candidates for new connections. However, the
+verses from Chronicles do have several keywords in common, so it's not unreasonable
+to suggest a connection between them.
 
 ## Thus we see
+
+This post focused on leveraging the existing connections between verses to suggest
+additional connections; in total, we identified more than 3000 potential 
+connections. As with the existing cross-references in the Standard Works, not
+every suggested connection is going to be relevant for every use, but my hope is
+that some of them will be relevant for some uses!
 
 Stay tuned for Part II of this post, where we will use machine learning to
 measure the textual similarity between verses and suggest new connections.
