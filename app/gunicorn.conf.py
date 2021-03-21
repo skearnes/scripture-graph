@@ -16,4 +16,5 @@
 https://cloud.google.com/appengine/docs/flexible/python/runtime#recommended_gunicorn_configuration.
 """
 
+preload_app = True
 workers = 1

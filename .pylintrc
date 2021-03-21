@@ -294,6 +294,11 @@ good-names=i,
            ex,
            df,
            Run,
+           a,
+           b,
+           aa,
+           bb,
+           ab,
            _
 
 # Good variable names regexes, separated by a comma. If names match any regex,

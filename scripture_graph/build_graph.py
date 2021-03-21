@@ -39,6 +39,7 @@ flags.DEFINE_string('input_pattern', None, 'Input EPUB pattern.')
 flags.DEFINE_string('output', None, 'Output graph filename.')
 flags.DEFINE_string('tree', None, 'Output tree filename.')
 flags.DEFINE_boolean('topics', True, 'Whether to include topic nodes.')
+flags.DEFINE_boolean('suggested', True, 'Whether to include suggested edges.')
 
 
 def write_graph(graph: nx.Graph, filename: str):
@@ -94,6 +95,9 @@ def main(argv):
     if duplicated_edges:
         logging.info(f'ignored {duplicated_edges} duplicated edges')
     logging.info(nx.info(graph))
+    if FLAGS.suggested:
+        graph_lib.add_suggested_edges(graph)
+        logging.info(nx.info(graph))
     write_graph(graph, FLAGS.output)
     if FLAGS.tree:
         graph_lib.write_tree(graph, FLAGS.tree)

@@ -35,5 +35,13 @@
     {% endfor %}
 </ul>
 {% endif %}
+<p>Suggested connections</p>
+{% if suggested %}
+<ul>
+    {% for name, url in suggested %}
+    <li><a href="{{ url }}" rel="noopener noreferrer" target="_blank">{{ name }}</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
 </div>
 </body>

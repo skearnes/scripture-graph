@@ -170,7 +170,24 @@ function initGraph(verse) {
           'font-weight' : 'normal',
           'curve-style' : 'straight'
         }
-      }
+      },
+      {
+        selector : 'edge[kind]',
+        css : {
+          'width' : 1.0,
+          'text-opacity' : 1.0,
+          'target-arrow-color' : 'rgb(255,179,0)',
+          'line-color' : 'rgb(255,179,0)',
+          'source-arrow-color' : 'rgb(255,179,0)',
+          'line-style' : 'dashed',
+          'source-arrow-shape' : 'triangle',
+          'opacity' : 1.0,
+          'font-size' : 10,
+          'target-arrow-shape' : 'triangle',
+          'font-weight' : 'normal',
+          'curve-style' : 'straight'
+        }
+      },
     ],
     layout : {
       name : 'cola',
