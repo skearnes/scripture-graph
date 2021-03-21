@@ -36,7 +36,7 @@ connections that go beyond existing tools. But before I bite off more than I can
 chew, let's start with some simple approaches that can be used to expand the
 existing set of connections (obvious or not).
 
-### Verses as vectors
+### Representations and metrics
 
 From a data science perspective, similarity calculations require two
 ingredients: a representation and a metric. The most common representation is a
@@ -44,7 +44,9 @@ vector, where each component holds information about some property of the
 object. For example,
 a [bag-of-words](https://en.wikipedia.org/wiki/Bag-of-words_model)
 representation of a document is simply the number of instances of each word from
-a predefined vocabulary. Metrics are used to combine the representations for two
+a predefined vocabulary.
+
+Metrics are used to combine the representations for two
 objects and return a similarity or distance value. In text processing tasks, two
 of the most common metrics
 are [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity)
@@ -101,14 +103,28 @@ neighbors.
 
 ### Verses with the same set of neighbors
 
-More than 1700 of these nonzero pairs actually share *all* of their neighbors.
+More than 1700 of the nonzero pairs actually share *all* of their neighbors.
 For example, Deut. 5:17 and Matt. 5:21 do not reference one another, but they
-both have connections to Mosiah 13:21, 3 Ne. 12:21 and D&C 42:18.
+both have connections to Mosiah 13:21, 3 Ne. 12:21, and D&C 42:18.
+
+The vast majority of these pairs share only a single neighbor.
+For instance, Deut. 8:11 and 3 Ne. 28:35 both have a single connection to Hel. 12:2.
+Despite having high Jaccard similarity, these verses are not obviously related, and
+it makes sense to impose an additional constraint on the number of shared
+neighbors to avoid spurious connections. Using a minimum of two shared
+neighbors narrows the list to 34 suggested connections with perfect similarity.
+
+### Non-trivial cases
+
+
 
 ## Thus we see
 
-**Stay tuned for Part II of this post, where we will use machine learning to
-measure the textual similarity between verses and suggest new connections.**
+Stay tuned for Part II of this post, where we will use machine learning to
+measure the textual similarity between verses and suggest new connections.
+Importantly, this will be our first opportunity to "rescue" some
+of the singleton verses that have no connections to the rest of the Standard
+Works.
 
 {:.note}
 The code used for the analysis and figures in this post is available on
