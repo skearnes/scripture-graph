@@ -78,8 +78,10 @@ which are not connected by any existing cross-references. The neighborhood
 sets for these verses are, respectively, {John 3:16, John 12:32, 2 Ne. 2:27, 2
 Ne. 9:5, Jacob 5:41, Alma 26:37} and {Isa. 59:16, John 3:16, 1 Ne. 1:14, 2 Ne.
 1:15, 2 Ne. 26:25, Jacob 6:5, Alma 5:33, Alma 5:34, Alma 19:36}. These verses
-have one neighbor in common (John 3:16) and 14 unique neighbors between them, so
-the Jaccard similarity is 1 / 14 = 0.07.
+have one neighbor in
+common ([John 3:16](https://www.churchofjesuschrist.org/study/scriptures/nt/john/3.16?lang=eng#p16#16))
+and 14 unique neighbors between them, so the Jaccard similarity is 1 / 14 =
+0.07.
 
 As an aside, identifying connections this way has an interesting property: it is
 iterable. If we take add the top-ranked connections to the existing set, we can
@@ -105,15 +107,20 @@ neighbors.
 ### Verses with the same set of neighbors
 
 More than 1700 of the nonzero pairs actually share *all* of their neighbors. For
-example, Deut. 5:17 and Matt. 5:21 do not reference one another, but they both
-have connections to Mosiah 13:21, 3 Ne. 12:21, and D&C 42:18.
+example, [Deut. 5:17](https://www.churchofjesuschrist.org/study/scriptures/ot/deut/5.17?lang=eng#p17#17)
+and [Matt. 5:21](https://www.churchofjesuschrist.org/study/scriptures/nt/matt/5.21?lang=eng#p21#21)
+do not reference one another, but they both have connections to Mosiah 13:21, 3
+Ne. 12:21, and D&C 42:18.
 
 The vast majority of these pairs share only a single neighbor. For instance,
-Deut. 8:11 and 3 Ne. 28:35 both have a single connection to Hel. 12:2. Despite
-having high Jaccard similarity, these verses are not obviously related, and it
-seems prudent to impose an additional constraint on the number of shared
-neighbors to avoid spurious connections. Using a minimum of two shared neighbors
-narrows the list to 34 suggested connections with perfect similarity.
+[Deut. 8:11](https://www.churchofjesuschrist.org/study/scriptures/ot/deut/8.11?lang=eng#p11#11)
+and [3 Ne. 28:35](https://www.churchofjesuschrist.org/study/scriptures/bofm/3-ne/28.35?lang=eng#p35#35)
+both have a single connection
+to [Hel. 12:2](https://www.churchofjesuschrist.org/study/scriptures/bofm/hel/12.2?lang=eng#p2#2).
+Despite having high Jaccard similarity, these verses are not obviously
+related, and it seems prudent to impose an additional constraint on the number
+of shared neighbors to avoid spurious connections. Using a minimum of two shared
+neighbors narrows the list to 34 suggested connections with perfect similarity.
 
 ### Non-trivial cases
 
@@ -153,6 +160,12 @@ suggest additional connections; in total, we identified more than 3000 potential
 connections. As with the existing cross-references in the Standard Works, not
 every suggested connection is going to be relevant for every use, but my hope is
 that some of them will be relevant for some uses!
+
+As I mentioned in the introduction, the
+[Connection Explorer](https://graph.welding-links.org) includes the newly
+suggested connections:
+
+![](/assets/2021-03-21/explorer.png)
 
 Stay tuned for Part II of this post, where we will use machine learning to
 measure the textual similarity between verses and suggest new connections.
