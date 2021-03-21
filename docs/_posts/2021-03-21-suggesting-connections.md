@@ -7,9 +7,10 @@ between verses. If we ignore the directionality of these references, there are
 26&nbsp;946 connected verse pairs. These connections represent only a fraction
 of the possible number of verse pairs (26&nbsp;946 / 881&nbsp;727&nbsp;020 =
 0.003%). Of course, we know that not all verse pairs are
-interesting&mdash;Joshua 18:25 and D&C 10:30 really don't have anything in
-common&mdash;but there are definitely interesting connections that the existing
-cross-references have missed.
+interesting&mdash;[Joshua 18:25](https://www.churchofjesuschrist.org/study/scriptures/ot/josh/18.25?lang=eng#p25#25)
+and [D&C 10:30](https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/10.30?lang=eng#p30#30)
+really don't have anything in common&mdash;but there are definitely interesting
+connections that the existing cross-references have missed.
 
 This post explores several methods for *algorithmically* suggesting new
 connections in the scriptures. There's no ground truth here; the validity of a
