@@ -26,6 +26,8 @@ from absl import logging
 from lxml import cssselect
 from lxml import etree
 import networkx as nx
+import numpy as np
+import pandas as pd
 
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
@@ -595,6 +597,21 @@ def remove_topic_nodes(graph: nx.Graph):
                  graph.number_of_nodes(), graph.number_of_edges())
 
 
+def remove_suggested_edges(graph: nx.Graph):
+    """Drops non-canonical edges from the graph."""
+    logging.info('Dropping non-canonical edges')
+    logging.info('Original graph has %d nodes and %d edges',
+                 graph.number_of_nodes(), graph.number_of_edges())
+    drop = set()
+    for edge in graph.edges:
+        if graph.edges[edge].get('kind'):
+            drop.add(edge)
+    for edge in drop:
+        graph.remove_edge(*edge)
+    logging.info('Updated graph has %d nodes and %d edges',
+                 graph.number_of_nodes(), graph.number_of_edges())
+
+
 def write_tree(graph: nx.Graph, filename: str):
     """Writes a JSON navigation tree."""
     graph = graph.copy()
@@ -652,3 +669,88 @@ def get_verses(graph: nx.Graph, book: str) -> Dict[int, List[str]]:
         if data['book'] == book:
             verses[data['chapter']].append(data['verse'])
     return verses
+
+
+def jaccard(graph: nx.Graph) -> np.ndarray:
+    """Builds a pairwise Jaccard similarity matrix based on node neighbors.
+
+    Note that self-similarity values are removed from the returned array.
+
+    Args:
+        graph: Graph to use for similarity calculations.
+
+    Returns:
+        N x N similarity matrix.
+    """
+    adjacency_matrix = nx.adjacency_matrix(graph)
+    ab = adjacency_matrix @ adjacency_matrix.T
+    assert ab.shape == (graph.number_of_nodes(), graph.number_of_nodes())
+    aa = adjacency_matrix.sum(axis=1)
+    assert aa.shape == (graph.number_of_nodes(), 1)
+    bb = aa.T
+    assert bb.shape == (1, graph.number_of_nodes())
+    similarity = ab / (aa + bb - ab)
+    np.nan_to_num(similarity, copy=False)
+    similarity[np.diag_indices_from(similarity)] = 0.0
+    return similarity
+
+
+def add_suggested_edges(digraph: nx.DiGraph) -> pd.DataFrame:
+    """Adds suggested edges to the graph.
+
+    Keeps all nonzero similarity pairs with at least two shared neighbors. Note
+    that the added edges are based on similarities in an undirected graph, and
+    that suggested edges are added bidirectionally.
+
+    Args:
+        digraph: The original cross-reference graph.
+
+    Returns:
+        DataFrame containing unique pairs that were added to the graph.
+    """
+    graph = digraph.to_undirected()
+    remove_topic_nodes(graph)
+    similarity = jaccard(graph)
+    nonzero = get_nonzero_edges(graph, similarity)
+    mask = (~nonzero.exists) & (nonzero.intersection > 1)
+    suggested = nonzero[mask]
+    logging.info('Adding %d suggested edges', suggested.shape[0])
+    for row in suggested.itertuples():
+        digraph.add_edge(row.a, row.b, kind='jaccard')
+        digraph.add_edge(row.b, row.a, kind='jaccard')
+    return suggested
+
+
+def get_nonzero_edges(graph: nx.Graph, similarity: np.ndarray) -> pd.DataFrame:
+    """Builds a list of nonzero edges."""
+    nodes = np.asarray(graph.nodes())
+    mask = np.where(similarity > 0)
+    rows = []
+    for i, j in zip(*mask):
+        order = sorted([nodes[i], nodes[j]])
+        a = set(n[1] for n in graph.edges(order[0]))
+        b = set(n[1] for n in graph.edges(order[1]))
+        rows.append({
+            'a': order[0],
+            'b': order[1],
+            'jaccard': similarity[i, j],
+            'intersection': len(a & b),
+            'union': len(a | b),
+        })
+    df = pd.DataFrame(rows)
+    logging.info('All nonzero pairs: %s', df.shape)
+    df = df.drop_duplicates(['a', 'b']).reset_index()
+    logging.info('Unique nonzero pairs: %s', df.shape)
+    # Annotate connections that already exist.
+    keep = []
+    for row in df.itertuples():
+        try:
+            _ = graph.edges[(row.a, row.b)]
+            keep.append(False)
+        except KeyError:
+            keep.append(True)
+    keep = np.asarray(keep, dtype=bool)
+    df.loc[keep, 'exists'] = False
+    df.loc[~keep, 'exists'] = True
+    df['exists'] = df.exists.values.astype(bool)
+    return df
