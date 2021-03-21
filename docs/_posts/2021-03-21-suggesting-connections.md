@@ -85,7 +85,7 @@ and 14 unique neighbors between them, so the Jaccard similarity is 1 / 14 =
 0.07.
 
 As an aside, identifying connections this way has an interesting property: it is
-iterable. If we take add the top-ranked connections to the existing set, we can
+iterable. If we add the top-ranked connections to the existing set, we can
 repeat the analysis to suggest another new set of connections. If we had the
 patience, we could repeat this procedure until the set of connections doesn't
 change anymore. (For simplicity, we will not iterate in this post.)
