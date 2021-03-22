@@ -2,10 +2,10 @@
 title: "Suggesting Connections (Part I)"
 ---
 
-The Standard Works contain 41&nbsp;995 verses and 45&nbsp;985 cross-references
+The Standard Works contain 41,995 verses and 45,985 cross-references
 between verses. If we ignore the directionality of these references, there are
-26&nbsp;946 connected verse pairs. These connections represent only a fraction
-of the possible number of verse pairs (26&nbsp;946 / 881&nbsp;727&nbsp;020 =
+26,946 connected verse pairs. These connections represent only a fraction
+of the possible number of verse pairs (26,946 / 881,727,020 =
 0.003%). Of course, we know that not all verse pairs are
 interesting&mdash;[Joshua 18:25](https://www.churchofjesuschrist.org/study/scriptures/ot/josh/18.25?lang=eng#p25#25)
 and [D&C 10:30](https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/10.30?lang=eng#p30#30)
@@ -94,7 +94,7 @@ change anymore. (For simplicity, we will not iterate in this post.)
 
 Since over half of the nodes in the graph have no incoming or outgoing
 references, most of the pairwise Jaccard similarity values are zero. In fact,
-only 95&nbsp;247 verse pairs have any neighbors in common (~1% of all pairs;
+only 95,247 verse pairs have any neighbors in common (~1% of all pairs;
 note that this includes pairs that are already connected by cross-references).
 Of these, most similarities are much less than one:
 

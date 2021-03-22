@@ -31,10 +31,10 @@ distribution of component sizes (note that both axes use a logarithmic scale):
 ![](/assets/2020-12-31/component-size.png)
 
 The frequency of components with a given size drops rapidly as the size
-increases. There are 22&nbsp;243 singletons, 1159 two-node components, 342
+increases. There are 22,243 singletons, 1159 two-node components, 342
 three-node components, and so on. The bar on the far right is the one we're most
-interested in; it represents a single component containing 15&nbsp;004 nodes and
-40&nbsp;011 edges. This component contains 36% of the verses in the standard
+interested in; it represents a single component containing 15,004 nodes and
+40,011 edges. This component contains 36% of the verses in the standard
 works (76% of the verses that have any incoming or outgoing references) and 87%
 of the cross-references.
 

@@ -63,8 +63,8 @@ directions.
 ## Reference Counts
 
 Modulo any bugs in my verse and reference parsing
-[code](https://github.com/skearnes/scripture-graph), there are 41&nbsp;995
-verses and 45&nbsp;985 cross-references between verses in the standard works (
+[code](https://github.com/skearnes/scripture-graph), there are 41,995
+verses and 45,985 cross-references between verses in the standard works (
 excluding references from study helps like the Topical Guide). Perhaps
 unsurprisingly, more than 50% of verses in the standard works are not referenced
 by any other verse (although they may be included in study helps like the
@@ -217,16 +217,16 @@ Updates:
 * {:.note} **December 30,
   2020:** [Fixed a bug](https://github.com/skearnes/scripture-graph/pull/5)
   when parsing JST references that caused a number of self-edges to be formed.
-  This changed the edge count in the cross-reference graph from 45&nbsp;880 to
-  45&nbsp;786. This also resulted in many more ties in reference counts for the
+  This changed the edge count in the cross-reference graph from 45,880 to
+  45,786. This also resulted in many more ties in reference counts for the
   New Testament, so the table of the most cited verses was updated to show only
   the top-ranked verses rather than two from each volume.
 * {:.note} **January 4,
   2021:** [Updated](https://github.com/skearnes/scripture-graph/pull/8)
   the reference parsing code to handle multiple verses in the same chapter (
   e.g. "1&nbsp;Ne.&nbsp;3:7,&nbsp;10" now creates edges to 1&nbsp;Ne.&nbsp;3:7
-  and 1&nbsp;Ne.&nbsp;3:10). This changed the edge count from 45&nbsp;786 to
-  45&nbsp;985.
+  and 1&nbsp;Ne.&nbsp;3:10). This changed the edge count from 45,786 to
+  45,985.
   
 [![Creative Commons License](https://i.creativecommons.org/l/by-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-sa/4.0/)
 

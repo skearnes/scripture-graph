@@ -29,7 +29,7 @@ references to the graph, we have:
 <tbody>
   <tr>
     <td>Verses</td>
-    <td class="right">41&nbsp;995</td>
+    <td class="right">41,995</td>
   </tr>
   <tr>
     <td>TG</td>
@@ -41,7 +41,7 @@ references to the graph, we have:
   </tr>
   <tr>
     <td></td>
-    <td class="right" style="border-top: 1px solid black"><b>48&nbsp;566</b></td>
+    <td class="right" style="border-top: 1px solid black"><b>48,566</b></td>
   </tr>
 </tbody>
 </table>
@@ -55,23 +55,23 @@ references to the graph, we have:
 <tbody>
   <tr>
     <td>Verse→Verse</td>
-    <td class="right">45&nbsp;985</td>
+    <td class="right">45,985</td>
   </tr>
   <tr>
     <td>Topic→Verse</td>
-    <td class="right">100&nbsp;597</td>
+    <td class="right">100,597</td>
   </tr>
   <tr>
     <td>Verse→Topic</td>
-    <td class="right">22&nbsp;223</td>
+    <td class="right">22,223</td>
   </tr>
   <tr>
     <td>Topic→Topic</td>
-    <td class="right">14&nbsp;267</td>
+    <td class="right">14,267</td>
   </tr>
   <tr>
     <td></td>
-    <td class="right" style="border-top: 1px solid black"><b>183&nbsp;072</b></td>
+    <td class="right" style="border-top: 1px solid black"><b>183,072</b></td>
   </tr>
 </tbody>
 </table>
@@ -97,7 +97,7 @@ original values from the verses-only graph are shown in blue and orange):
 The Pearl of Great Price retains its position as the volume with the highest
 relative reference count with an average of more than nine references to each
 verse. The Book of Mormon overtakes the Old Testament as the volume with the
-highest number of references overall, with more than 43&nbsp;000.
+highest number of references overall, with more than 43,000.
 
 ## Graph Components
 
@@ -117,7 +117,7 @@ topic-free graph only covered 36% of verses):
 <tbody>
   <tr>
     <td>Verses</td>
-    <td class="right">28&nbsp;573</td>
+    <td class="right">28,573</td>
   </tr>
   <tr>
     <td>TG</td>
@@ -129,7 +129,7 @@ topic-free graph only covered 36% of verses):
   </tr>
   <tr>
     <td></td>
-    <td class="right" style="border-top: 1px solid black"><b>34&nbsp;739</b></td>
+    <td class="right" style="border-top: 1px solid black"><b>34,739</b></td>
   </tr>
 </tbody>
 </table>
@@ -143,23 +143,23 @@ topic-free graph only covered 36% of verses):
 <tbody>
   <tr>
     <td>Verse→Verse</td>
-    <td class="right">45&nbsp;070</td>
+    <td class="right">45,070</td>
   </tr>
   <tr>
     <td>Topic→Verse</td>
-    <td class="right">100&nbsp;537</td>
+    <td class="right">100,537</td>
   </tr>
   <tr>
     <td>Verse→Topic</td>
-    <td class="right">22&nbsp;223</td>
+    <td class="right">22,223</td>
   </tr>
   <tr>
     <td>Topic→Topic</td>
-    <td class="right">14&nbsp;266</td>
+    <td class="right">14,266</td>
   </tr>
   <tr>
     <td></td>
-    <td class="right" style="border-top: 1px solid black"><b>182&nbsp;096</b></td>
+    <td class="right" style="border-top: 1px solid black"><b>182,096</b></td>
   </tr>
 </tbody>
 </table>
