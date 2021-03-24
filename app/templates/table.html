@@ -19,29 +19,29 @@
 <body>
 <div id="table-content">
 <h3 style="margin-top: 0;"><a href="{{ verse_url }}" rel="noopener noreferrer" target="_blank">{{ verse }}</a></h3>
-<p>Verses that reference {{ verse }}</p>
 {% if incoming %}
+<p>Verses that reference {{ verse }}</p>
 <ul>
     {% for name, url in incoming %}
     <li><a href="{{ url }}" rel="noopener noreferrer" target="_blank">{{ name }}</a></li>
     {% endfor %}
 </ul>
 {% endif %}
-<p>Verses that are referenced by {{ verse }}</p>
 {% if outgoing %}
+<p>Verses that are referenced by {{ verse }}</p>
 <ul>
     {% for name, url in outgoing %}
     <li><a href="{{ url }}" rel="noopener noreferrer" target="_blank">{{ name }}</a></li>
     {% endfor %}
 </ul>
 {% endif %}
+{% if suggested %}
 <p>
     Suggested connections
     <a href="https://welding-links.org/blog/2021/suggesting-connections/" rel="noopener noreferrer" target="_blank">
         <i class="far fa-question-circle" aria-hidden="true"></i>
     </a>
 </p>
-{% if suggested %}
 <ul>
     {% for name, url in suggested %}
     <li><a href="{{ url }}" rel="noopener noreferrer" target="_blank">{{ name }}</a></li>
