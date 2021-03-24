@@ -157,6 +157,12 @@ def get_table() -> str:
     return flask.jsonify(flask.render_template('table.html', **args))
 
 
+@app.route('/_ah/warmup')
+def warmup():
+    """Handle warmup requests from App Engine."""
+    return flask.make_response('', 200)
+
+
 def get_verse_url(verse: str) -> str:
     """Creates a URL for the verse text."""
     node = GRAPH.nodes[verse]

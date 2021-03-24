@@ -22,7 +22,6 @@ handlers:
   static_dir: static
   secure: always
   redirect_http_response_code: 301
-
   # This handler routes all requests not caught above to your main app. It is
   # required when static routes are defined, but can be omitted (along with
   # the entire handlers section) when there are no static files defined.
@@ -30,3 +29,7 @@ handlers:
   script: auto
   secure: always
   redirect_http_response_code: 301
+automatic_scaling:
+  min_instances: 1
+inbound_services:
+- warmup
