@@ -27,4 +27,6 @@ if __name__ == '__main__':
               'numpy~=1.18.5',
               'pandas~=1.1.3',
               'seaborn~=0.11.0',
+              'tensorflow~=2.4.1',
+              'tensorflow-hub~=0.11.0',
           ])

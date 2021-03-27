@@ -28,6 +28,7 @@ from lxml import etree
 import networkx as nx
 import numpy as np
 import pandas as pd
+import tensorflow_hub as hub
 
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
@@ -155,9 +156,7 @@ VOLUMES_SHORT = {
 }
 
 # XML namespaces.
-NAMESPACES = {
-    'default': 'http://www.w3.org/1999/xhtml'
-}
+NAMESPACES = {'default': 'http://www.w3.org/1999/xhtml'}
 
 
 def get_volume(book: str) -> str:
@@ -702,6 +701,32 @@ def jaccard(graph: nx.Graph) -> np.ndarray:
     np.nan_to_num(similarity, copy=False)
     similarity[np.diag_indices_from(similarity)] = 0.0
     return similarity
+
+
+def angular_cosine(embeddings: np.ndarray) -> np.ndarray:
+    """Computes pairwise angular cosine similarities.
+
+    https://en.wikipedia.org/wiki/Cosine_similarity#Angular_distance_and_similarity
+    """
+    ab = embeddings @ embeddings.T
+    assert ab.shape == (embeddings.shape[0], embeddings.shape[0])
+    aa = np.square(embeddings).sum(axis=1, keepdims=True)
+    assert aa.shape == (embeddings.shape[0], 1)
+    bb = aa.T
+    assert bb.shape == (1, embeddings.shape[0])
+    similarity = 1 - np.arccos(ab / (aa * bb)) / np.pi
+    np.nan_to_num(similarity, copy=False)
+    similarity[np.diag_indices_from(similarity)] = 0.0
+    return similarity
+
+
+def get_embeddings(graph: nx.Graph, model_url: str) -> np.ndarray:
+    """Computes verse embeddings using a pretrained NLP model."""
+    text = []
+    for node in graph.nodes:
+        text.append(graph.nodes[node]['text'])
+    model = hub.load(model_url)
+    return model(text).numpy()
 
 
 def add_suggested_edges(digraph: nx.DiGraph) -> pd.DataFrame:
