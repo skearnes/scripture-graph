@@ -235,7 +235,7 @@ def read_epub(filename: str) -> ScriptureGraph:
             if not info.filename.endswith('.xhtml'):
                 continue
             data = io.BytesIO(archive.read(info))
-            tree = etree.parse(data, parser=etree.XMLParser())
+            tree = etree.parse(data)
             basename = os.path.basename(info.filename)
             if basename.startswith('bd_'):
                 continue
@@ -309,7 +309,7 @@ def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
                 verse = int(list(element.itertext())[0])
             # Remove verse numbers and reference markers.
             if element.get('class') in ['verseNumber', 'marker']:
-                element.clear()
+                element.clear(keep_tail=True)
         text = ''.join(verse_element.itertext())
         if not verse:
             if text.startswith(('After prayer',)):
