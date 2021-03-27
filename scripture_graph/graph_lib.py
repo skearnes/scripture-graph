@@ -720,17 +720,36 @@ def angular_cosine(embeddings: np.ndarray) -> np.ndarray:
     return similarity
 
 
-def get_embeddings(graph: nx.Graph, model_url: str) -> np.ndarray:
+def prepare_text(text: str) -> str:
+    """Prepares text for embedding."""
+    return text.replace('¶', '').strip().lower()
+
+
+def get_embeddings(graph: nx.Graph,
+                   model_url: str,
+                   batch_size: Optional[int] = None) -> np.ndarray:
     """Computes verse embeddings using a pretrained NLP model."""
-    text = []
+    verses = []
     for node in graph.nodes:
-        text.append(graph.nodes[node]['text'])
+        verses.append(prepare_text(graph.nodes[node]['text']))
     model = hub.load(model_url)
-    return model(text).numpy()
+    if batch_size:
+        embeddings = []
+        start = 0
+        stop = batch_size
+        while start < len(verses):
+            embeddings.append(model(verses[start:stop]).numpy())
+            start += batch_size
+            stop += batch_size
+        embeddings = np.concatenate(embeddings, axis=0)
+        assert len(embeddings) == len(verses)
+        return embeddings
+    else:
+        return model(verses).numpy()
 
 
-def add_suggested_edges(digraph: nx.DiGraph) -> pd.DataFrame:
-    """Adds suggested edges to the graph.
+def add_jaccard_edges(digraph: nx.DiGraph) -> pd.DataFrame:
+    """Adds suggested edges to the graph using Jaccard similarity.
 
     Keeps all nonzero similarity pairs with at least two shared neighbors. Note
     that the added edges are based on similarities in an undirected graph, and
@@ -747,11 +766,31 @@ def add_suggested_edges(digraph: nx.DiGraph) -> pd.DataFrame:
     similarity = jaccard(graph)
     nonzero = get_nonzero_edges(graph, similarity)
     mask = (~nonzero.exists) & (nonzero.intersection > 1)
-    suggested = nonzero[mask]
+    suggested = nonzero[mask].copy()
     logging.info('Adding %d suggested edges', suggested.shape[0])
     for row in suggested.itertuples():
         digraph.add_edge(row.a, row.b, kind='jaccard')
         digraph.add_edge(row.b, row.a, kind='jaccard')
+    suggested['kind'] = 'jaccard'
+    return suggested
+
+
+def add_use_edges(digraph: nx.DiGraph, threshold: float) -> pd.DataFrame:
+    """Adds suggested edges to the graph using USE embedding similarity."""
+    model_url = 'https://tfhub.dev/google/universal-sentence-encoder-large/5'
+    graph = digraph.copy()
+    remove_topic_nodes(graph)
+    embeddings = get_embeddings(graph, model_url=model_url, batch_size=1000)
+    similarity = angular_cosine(embeddings)
+    similarity[similarity < threshold] = 0.0
+    nonzero = get_nonzero_edges(graph, similarity)
+    mask = (~nonzero.exists)
+    suggested = nonzero[mask].copy()
+    logging.info('Adding %d suggested edges', suggested.shape[0])
+    for row in suggested.itertuples():
+        graph.add_edge(row.a, row.b, kind='use')
+        graph.add_edge(row.b, row.a, kind='use')
+    suggested['kind'] = 'use'
     return suggested
 
 
@@ -767,7 +806,7 @@ def get_nonzero_edges(graph: nx.Graph, similarity: np.ndarray) -> pd.DataFrame:
         rows.append({
             'a': order[0],
             'b': order[1],
-            'jaccard': similarity[i, j],
+            'similarity': similarity[i, j],
             'intersection': len(a & b),
             'union': len(a | b),
         })
