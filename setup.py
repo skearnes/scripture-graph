@@ -16,6 +16,4 @@
 from setuptools import find_packages
 from setuptools import setup
 
-if __name__ == '__main__':
-    setup(name='scripture-graph',
-          packages=find_packages())
+setup(name='scripture-graph', packages=find_packages())
