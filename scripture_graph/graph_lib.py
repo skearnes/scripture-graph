@@ -747,6 +747,15 @@ def get_embeddings(graph: nx.Graph,
     return model(verses).numpy()
 
 
+def _add_suggested_edges(graph: nx.DiGraph, suggested: pd.DataFrame, kind: str):
+    """Adds suggested edges to the graph."""
+    logging.info('Adding %d suggested edges', suggested.shape[0])
+    for row in suggested.itertuples():
+        graph.add_edge(row.a, row.b, kind=kind)
+        graph.add_edge(row.b, row.a, kind=kind)
+    suggested['kind'] = kind
+
+
 def add_jaccard_edges(digraph: nx.DiGraph) -> pd.DataFrame:
     """Adds suggested edges to the graph using Jaccard similarity.
 
@@ -766,11 +775,7 @@ def add_jaccard_edges(digraph: nx.DiGraph) -> pd.DataFrame:
     nonzero = get_nonzero_edges(graph, similarity)
     mask = (~nonzero.exists) & (nonzero.intersection > 1)
     suggested = nonzero[mask].copy()
-    logging.info('Adding %d suggested edges', suggested.shape[0])
-    for row in suggested.itertuples():
-        digraph.add_edge(row.a, row.b, kind='jaccard')
-        digraph.add_edge(row.b, row.a, kind='jaccard')
-    suggested['kind'] = 'jaccard'
+    _add_suggested_edges(digraph, suggested, kind='jaccard')
     return suggested
 
 
@@ -785,11 +790,7 @@ def add_use_edges(digraph: nx.DiGraph, threshold: float) -> pd.DataFrame:
     nonzero = get_nonzero_edges(graph, similarity)
     mask = (~nonzero.exists)
     suggested = nonzero[mask].copy()
-    logging.info('Adding %d suggested edges', suggested.shape[0])
-    for row in suggested.itertuples():
-        graph.add_edge(row.a, row.b, kind='use')
-        graph.add_edge(row.b, row.a, kind='use')
-    suggested['kind'] = 'use'
+    _add_suggested_edges(digraph, suggested, kind='use')
     return suggested
 
 
@@ -814,15 +815,12 @@ def get_nonzero_edges(graph: nx.Graph, similarity: np.ndarray) -> pd.DataFrame:
     df = df.drop_duplicates(['a', 'b']).reset_index()
     logging.info('Unique nonzero pairs: %s', df.shape)
     # Annotate connections that already exist.
-    keep = []
+    exists = []
     for row in df.itertuples():
-        try:
-            _ = graph.edges[(row.a, row.b)]
-            keep.append(False)
-        except KeyError:
-            keep.append(True)
-    keep = np.asarray(keep, dtype=bool)
-    df.loc[keep, 'exists'] = False
-    df.loc[~keep, 'exists'] = True
-    df['exists'] = df.exists.values.astype(bool)
+        if (row.a, row.b) in graph.edges or (row.b, row.a) in graph.edges:
+            exists.append(True)
+        else:
+            exists.append(False)
+    df['exists'] = exists
+    logging.info('Previously existing pairs: %d', df.exists.sum())
     return df
