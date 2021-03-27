@@ -16,15 +16,4 @@
 from setuptools import find_packages
 from setuptools import setup
 
-if __name__ == '__main__':
-    setup(name='scripture-graph',
-          packages=find_packages(),
-          install_requires=[
-              'absl-py~=0.11.0',
-              'cssselect~=1.1.0',
-              'lxml~=4.6.2',
-              'networkx~=2.5',
-              'numpy~=1.18.5',
-              'pandas~=1.1.3',
-              'seaborn~=0.11.0',
-          ])
+setup(name='scripture-graph', packages=find_packages())

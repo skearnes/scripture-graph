@@ -28,6 +28,7 @@ from lxml import etree
 import networkx as nx
 import numpy as np
 import pandas as pd
+import tensorflow_hub as hub
 
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
@@ -154,6 +155,9 @@ VOLUMES_SHORT = {
     'Pearl of Great Price': 'PoGP',
 }
 
+# XML namespaces.
+NAMESPACES = {'default': 'http://www.w3.org/1999/xhtml'}
+
 
 def get_volume(book: str) -> str:
     """Returns the containing volume for a book."""
@@ -169,6 +173,7 @@ class Verse:
     book: str
     chapter: int
     verse: int
+    text: Optional[str] = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -229,7 +234,7 @@ def read_epub(filename: str) -> ScriptureGraph:
             if not info.filename.endswith('.xhtml'):
                 continue
             data = io.BytesIO(archive.read(info))
-            tree = etree.parse(data, parser=etree.HTMLParser())
+            tree = etree.parse(data)
             basename = os.path.basename(info.filename)
             if basename.startswith('bd_'):
                 continue
@@ -259,7 +264,8 @@ def read_epub(filename: str) -> ScriptureGraph:
 
 def get_title(tree) -> str:
     """Extracts the title from an ElementTree."""
-    headers = cssselect.CSSSelector('title')(tree)
+    selector = cssselect.CSSSelector('default|title', namespaces=NAMESPACES)
+    headers = selector(tree)
     if len(headers) != 1:
         raise ValueError(f'unexpected number of titles: {headers}')
     return headers[0].text
@@ -302,7 +308,7 @@ def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
                 verse = int(list(element.itertext())[0])
             # Remove verse numbers and reference markers.
             if element.get('class') in ['verseNumber', 'marker']:
-                element.clear()
+                element.clear(keep_tail=True)
         text = ''.join(verse_element.itertext())
         if not verse:
             if text.startswith(('After prayer',)):
@@ -310,7 +316,7 @@ def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
             raise ValueError(
                 f'could not find verse number for {book} {chapter}: {text}')
         key = f'{book} {chapter}:{verse}'
-        verses[key] = Verse(book=book, chapter=chapter, verse=verse)
+        verses[key] = Verse(book=book, chapter=chapter, verse=verse, text=text)
     return verses
 
 
@@ -329,6 +335,7 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
     # NOTE(kearnes): Verse numbers are not repeated for multiple references, so
     # we keep track of the current verse as we iterate.
     verse = None
+    p_tag = f'{{{NAMESPACES["default"]}}}p'
     for reference_element in cssselect.CSSSelector('.listItem')(tree):
         targets = []
         for element in reference_element.iter():
@@ -337,7 +344,7 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
             # NOTE(kearnes): Most (but not all) references have the
             # "scriptureRef" class. This ambiguity means we have to resort to
             # regexes instead of simply walking through the tree.
-            if element.tag == 'p' and 'class' not in element.attrib:
+            if element.tag == p_tag and 'class' not in element.attrib:
                 targets.extend(parse_reference(''.join(element.itertext())))
         if not verse:
             raise ValueError(
@@ -456,7 +463,8 @@ def read_topic(tree, source) -> List[Reference]:
     """
     references = []
     targets = []
-    others = cssselect.CSSSelector('p.title')(tree)
+    selector = cssselect.CSSSelector('default|p.title', namespaces=NAMESPACES)
+    others = selector(tree)
     # NOTE(kearnes): Some topics have "see also" topics, others have "see also"
     # scriptures, and others have both or none. This is the best way I've come
     # up with for distinguishing between "see also" topics and scriptures.
@@ -695,8 +703,52 @@ def jaccard(graph: nx.Graph) -> np.ndarray:
     return similarity
 
 
-def add_suggested_edges(digraph: nx.DiGraph) -> pd.DataFrame:
-    """Adds suggested edges to the graph.
+def angular_cosine(embeddings: np.ndarray) -> np.ndarray:
+    """Computes pairwise angular cosine similarities.
+
+    https://en.wikipedia.org/wiki/Cosine_similarity#Angular_distance_and_similarity
+    """
+    ab = embeddings @ embeddings.T
+    assert ab.shape == (embeddings.shape[0], embeddings.shape[0])
+    aa = np.square(embeddings).sum(axis=1, keepdims=True)
+    assert aa.shape == (embeddings.shape[0], 1)
+    bb = aa.T
+    assert bb.shape == (1, embeddings.shape[0])
+    similarity = 1 - np.arccos(ab / (aa * bb)) / np.pi
+    np.nan_to_num(similarity, copy=False)
+    similarity[np.diag_indices_from(similarity)] = 0.0
+    return similarity
+
+
+def prepare_text(text: str) -> str:
+    """Prepares text for embedding."""
+    return text.replace('¶', '').strip().lower()
+
+
+def get_embeddings(graph: nx.Graph,
+                   model_url: str,
+                   batch_size: Optional[int] = None) -> np.ndarray:
+    """Computes verse embeddings using a pretrained NLP model."""
+    verses = []
+    for node in graph.nodes:
+        verses.append(prepare_text(graph.nodes[node]['text']))
+    model = hub.load(model_url)
+    if batch_size:
+        embeddings = []
+        start = 0
+        stop = batch_size
+        while start < len(verses):
+            embeddings.append(model(verses[start:stop]).numpy())
+            start += batch_size
+            stop += batch_size
+        embeddings = np.concatenate(embeddings, axis=0)
+        assert len(embeddings) == len(verses)
+        return embeddings
+    return model(verses).numpy()
+
+
+def add_jaccard_edges(digraph: nx.DiGraph) -> pd.DataFrame:
+    """Adds suggested edges to the graph using Jaccard similarity.
 
     Keeps all nonzero similarity pairs with at least two shared neighbors. Note
     that the added edges are based on similarities in an undirected graph, and
@@ -713,11 +765,31 @@ def add_suggested_edges(digraph: nx.DiGraph) -> pd.DataFrame:
     similarity = jaccard(graph)
     nonzero = get_nonzero_edges(graph, similarity)
     mask = (~nonzero.exists) & (nonzero.intersection > 1)
-    suggested = nonzero[mask]
+    suggested = nonzero[mask].copy()
     logging.info('Adding %d suggested edges', suggested.shape[0])
     for row in suggested.itertuples():
         digraph.add_edge(row.a, row.b, kind='jaccard')
         digraph.add_edge(row.b, row.a, kind='jaccard')
+    suggested['kind'] = 'jaccard'
+    return suggested
+
+
+def add_use_edges(digraph: nx.DiGraph, threshold: float) -> pd.DataFrame:
+    """Adds suggested edges to the graph using USE embedding similarity."""
+    model_url = 'https://tfhub.dev/google/universal-sentence-encoder-large/5'
+    graph = digraph.copy()
+    remove_topic_nodes(graph)
+    embeddings = get_embeddings(graph, model_url=model_url, batch_size=1000)
+    similarity = angular_cosine(embeddings)
+    similarity[similarity < threshold] = 0.0
+    nonzero = get_nonzero_edges(graph, similarity)
+    mask = (~nonzero.exists)
+    suggested = nonzero[mask].copy()
+    logging.info('Adding %d suggested edges', suggested.shape[0])
+    for row in suggested.itertuples():
+        graph.add_edge(row.a, row.b, kind='use')
+        graph.add_edge(row.b, row.a, kind='use')
+    suggested['kind'] = 'use'
     return suggested
 
 
@@ -733,7 +805,7 @@ def get_nonzero_edges(graph: nx.Graph, similarity: np.ndarray) -> pd.DataFrame:
         rows.append({
             'a': order[0],
             'b': order[1],
-            'jaccard': similarity[i, j],
+            'similarity': similarity[i, j],
             'intersection': len(a & b),
             'union': len(a | b),
         })

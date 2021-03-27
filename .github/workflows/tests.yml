@@ -27,45 +27,12 @@ jobs:
       - name: Install scripture-graph
         run: |
           cd "${GITHUB_WORKSPACE}"
-          python setup.py build install
+          pip install -r requirements.txt
+          python setup.py install
       - name: Run tests
         run: |
           cd "${GITHUB_WORKSPACE}"
           ./run_tests.sh
-  
-  test_notebooks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-      - name: Install scripture-graph
-        run: |
-          cd "${GITHUB_WORKSPACE}"
-          python setup.py install
-      - name: Cache EPUBs
-        id: cache-epubs
-        uses: actions/cache@v2
-        with:
-          path: "*.epub"
-          key: epub-cache
-      - name: Download EPUBs
-        if: steps.cache-epubs.outputs.cache-hit != 'true'
-        run: |
-          cd "${GITHUB_WORKSPACE}"
-          ./download_epub.sh
-      - name: Build the graph
-        run: |
-          cd "${GITHUB_WORKSPACE}"
-          python scripture_graph/build_graph.py \
-            --input_pattern="*.epub" \
-            --output=scripture_graph.graphml
-      - name: Test notebooks
-        run: |
-          cd "${GITHUB_WORKSPACE}"
-          pip install treon
-          treon
           
   check_licenses:
     runs-on: ubuntu-latest
@@ -94,6 +61,7 @@ jobs:
       - name: Install scripture-graph
         run: |
           cd "${GITHUB_WORKSPACE}"
+          pip install -r requirements.txt
           python setup.py install
       - name: Run pylint
         run: |

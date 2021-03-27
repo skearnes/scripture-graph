@@ -40,6 +40,7 @@ flags.DEFINE_string('output', None, 'Output graph filename.')
 flags.DEFINE_string('tree', None, 'Output tree filename.')
 flags.DEFINE_boolean('topics', True, 'Whether to include topic nodes.')
 flags.DEFINE_boolean('suggested', True, 'Whether to include suggested edges.')
+flags.DEFINE_float('threshold', 0.77, 'Similarity threshold.')
 
 
 def write_graph(graph: nx.Graph, filename: str):
@@ -96,7 +97,8 @@ def main(argv):
         logging.info(f'ignored {duplicated_edges} duplicated edges')
     logging.info(nx.info(graph))
     if FLAGS.suggested:
-        graph_lib.add_suggested_edges(graph)
+        graph_lib.add_jaccard_edges(graph)
+        graph_lib.add_use_edges(graph, FLAGS.threshold)
         logging.info(nx.info(graph))
     write_graph(graph, FLAGS.output)
     if FLAGS.tree:

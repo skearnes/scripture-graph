@@ -5,7 +5,7 @@ title: "Suggesting Connections (Part I)"
 The Standard Works contain 41,995 verses and 45,985 cross-references
 between verses. If we ignore the directionality of these references, there are
 26,946 connected verse pairs. These connections represent only a fraction
-of the possible number of verse pairs (26,946 / 881,727,020 =
+of the possible number of verse pairs (26,946 / 881,769,015 =
 0.003%). Of course, we know that not all verse pairs are
 interesting&mdash;[Joshua 18:25](https://www.churchofjesuschrist.org/study/scriptures/ot/josh/18.25?lang=eng#p25#25)
 and [D&C 10:30](https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/10.30?lang=eng#p30#30)
