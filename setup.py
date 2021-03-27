@@ -24,9 +24,9 @@ if __name__ == '__main__':
               'cssselect>=1.1.0',
               'lxml>=4.6.2',
               'networkx>=2.5',
-              'numpy>=1.18.5',
-              'pandas>=1.1.3',
-              'seaborn>=0.11.0',
+              'numpy>=1.19.2',
+              'pandas>=1.1.5',
+              'seaborn>=0.11.1',
               'tensorflow>=2.4.1',
               'tensorflow-hub>=0.11.0',
           ])
