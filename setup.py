@@ -18,15 +18,4 @@ from setuptools import setup
 
 if __name__ == '__main__':
     setup(name='scripture-graph',
-          packages=find_packages(),
-          install_requires=[
-              'absl-py>=0.11.0',
-              'cssselect>=1.1.0',
-              'lxml>=4.6.2',
-              'networkx>=2.5',
-              'numpy>=1.19.2',
-              'pandas>=1.1.5',
-              'seaborn>=0.11.1',
-              'tensorflow>=2.4.1',
-              'tensorflow-hub>=0.11.0',
-          ])
+          packages=find_packages())
