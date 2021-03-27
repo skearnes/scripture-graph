@@ -744,8 +744,7 @@ def get_embeddings(graph: nx.Graph,
         embeddings = np.concatenate(embeddings, axis=0)
         assert len(embeddings) == len(verses)
         return embeddings
-    else:
-        return model(verses).numpy()
+    return model(verses).numpy()
 
 
 def add_jaccard_edges(digraph: nx.DiGraph) -> pd.DataFrame:
