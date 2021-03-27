@@ -154,6 +154,11 @@ VOLUMES_SHORT = {
     'Pearl of Great Price': 'PoGP',
 }
 
+# XML namespaces.
+NAMESPACES = {
+    'default': 'http://www.w3.org/1999/xhtml'
+}
+
 
 def get_volume(book: str) -> str:
     """Returns the containing volume for a book."""
@@ -169,6 +174,7 @@ class Verse:
     book: str
     chapter: int
     verse: int
+    text: Optional[str] = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -229,7 +235,7 @@ def read_epub(filename: str) -> ScriptureGraph:
             if not info.filename.endswith('.xhtml'):
                 continue
             data = io.BytesIO(archive.read(info))
-            tree = etree.parse(data, parser=etree.HTMLParser())
+            tree = etree.parse(data, parser=etree.XMLParser())
             basename = os.path.basename(info.filename)
             if basename.startswith('bd_'):
                 continue
@@ -259,7 +265,8 @@ def read_epub(filename: str) -> ScriptureGraph:
 
 def get_title(tree) -> str:
     """Extracts the title from an ElementTree."""
-    headers = cssselect.CSSSelector('title')(tree)
+    selector = cssselect.CSSSelector('default|title', namespaces=NAMESPACES)
+    headers = selector(tree)
     if len(headers) != 1:
         raise ValueError(f'unexpected number of titles: {headers}')
     return headers[0].text
@@ -310,7 +317,7 @@ def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
             raise ValueError(
                 f'could not find verse number for {book} {chapter}: {text}')
         key = f'{book} {chapter}:{verse}'
-        verses[key] = Verse(book=book, chapter=chapter, verse=verse)
+        verses[key] = Verse(book=book, chapter=chapter, verse=verse, text=text)
     return verses
 
 
@@ -329,6 +336,7 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
     # NOTE(kearnes): Verse numbers are not repeated for multiple references, so
     # we keep track of the current verse as we iterate.
     verse = None
+    p_tag = f'{{{NAMESPACES["default"]}}}p'
     for reference_element in cssselect.CSSSelector('.listItem')(tree):
         targets = []
         for element in reference_element.iter():
@@ -337,7 +345,7 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
             # NOTE(kearnes): Most (but not all) references have the
             # "scriptureRef" class. This ambiguity means we have to resort to
             # regexes instead of simply walking through the tree.
-            if element.tag == 'p' and 'class' not in element.attrib:
+            if element.tag == p_tag and 'class' not in element.attrib:
                 targets.extend(parse_reference(''.join(element.itertext())))
         if not verse:
             raise ValueError(
@@ -456,7 +464,8 @@ def read_topic(tree, source) -> List[Reference]:
     """
     references = []
     targets = []
-    others = cssselect.CSSSelector('p.title')(tree)
+    selector = cssselect.CSSSelector('default|p.title', namespaces=NAMESPACES)
+    others = selector(tree)
     # NOTE(kearnes): Some topics have "see also" topics, others have "see also"
     # scriptures, and others have both or none. This is the best way I've come
     # up with for distinguishing between "see also" topics and scriptures.
