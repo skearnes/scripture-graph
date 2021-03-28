@@ -21,7 +21,8 @@ from urllib import parse
 
 import flask
 import networkx as nx
-from scripture_graph import graph_lib
+
+import scripture_graph
 
 app = flask.Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -32,18 +33,33 @@ URL_BASE = 'https://www.churchofjesuschrist.org/study/scriptures/'
 
 BOOK_ORDER = dict(
     zip(
-        itertools.chain(graph_lib.VOLUMES['Old Testament'],
-                        graph_lib.VOLUMES['New Testament'],
-                        graph_lib.VOLUMES['Book of Mormon'],
-                        graph_lib.VOLUMES['Doctrine and Covenants'],
-                        graph_lib.VOLUMES['Pearl of Great Price']),
-        range(len(graph_lib.BOOKS_SHORT))))
+        itertools.chain(scripture_graph.VOLUMES['Old Testament'],
+                        scripture_graph.VOLUMES['New Testament'],
+                        scripture_graph.VOLUMES['Book of Mormon'],
+                        scripture_graph.VOLUMES['Doctrine and Covenants'],
+                        scripture_graph.VOLUMES['Pearl of Great Price']),
+        range(len(scripture_graph.BOOKS_SHORT))))
+
+
+def remove_topic_nodes(graph: nx.Graph):
+    """Drops topic nodes from the graph."""
+    logging.info('Dropping topic nodes')
+    logging.info('Original graph has %d nodes and %d edges',
+                 graph.number_of_nodes(), graph.number_of_edges())
+    drop = set()
+    for node in graph.nodes:
+        if graph.nodes[node]['kind'] == 'topic':
+            drop.add(node)
+    for node in drop:
+        graph.remove_node(node)
+    logging.info('Updated graph has %d nodes and %d edges',
+                 graph.number_of_nodes(), graph.number_of_edges())
 
 
 def load_graph() -> nx.DiGraph:
     """Loads the static cross-reference graph."""
     graph = nx.read_graphml('data/scripture_graph.graphml')
-    graph_lib.remove_topic_nodes(graph)
+    remove_topic_nodes(graph)
     return graph
 
 
@@ -166,7 +182,7 @@ def warmup():
 def get_verse_url(verse: str) -> str:
     """Creates a URL for the verse text."""
     node = GRAPH.nodes[verse]
-    volume = graph_lib.VOLUMES_SHORT[node['volume']].lower()
+    volume = scripture_graph.VOLUMES_SHORT[node['volume']].lower()
     if volume == 'bom':
         volume = 'bofm'
     elif volume == 'd&c':

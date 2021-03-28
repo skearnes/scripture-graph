@@ -1,4 +1,4 @@
-Flask~=1.1.2
-gunicorn~=20.0.4
-networkx~=2.5
-git+git://github.com/skearnes/scripture-graph#egg=scripture-graph
+Flask>=1.1.2
+gunicorn>=20.0.4
+networkx>=2.5
+git+https://github.com/skearnes/scripture-graph#egg=scripture-graph
