@@ -13,8 +13,7 @@
 # limitations under the License.
 
 runtime: python38
-instance_class: F4
-entrypoint: gunicorn -c gunicorn.conf.py -b :$PORT main:app
+instance_class: F1
 handlers:
   # This configures Google App Engine to serve the files in the app's static
   # directory.
@@ -29,5 +28,7 @@ handlers:
   script: auto
   secure: always
   redirect_http_response_code: 301
+automatic_scaling:
+  min_instances: 1
 inbound_services:
 - warmup

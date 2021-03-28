@@ -16,11 +16,10 @@
 import itertools
 import json
 import logging
-from typing import Dict, Iterable, List, Set, Tuple
+from typing import Dict, Iterable, List, Tuple, Union
 from urllib import parse
 
 import flask
-import networkx as nx
 
 import scripture_graph
 
@@ -41,50 +40,21 @@ BOOK_ORDER = dict(
         range(len(scripture_graph.BOOKS_SHORT))))
 
 
-def remove_topic_nodes(graph: nx.Graph):
-    """Drops topic nodes from the graph."""
-    logging.info('Dropping topic nodes')
-    logging.info('Original graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
-    drop = set()
-    for node in graph.nodes:
-        if graph.nodes[node]['kind'] == 'topic':
-            drop.add(node)
-    for node in drop:
-        graph.remove_node(node)
-    logging.info('Updated graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+def load_connections() -> Dict[str, Dict[str, Union[int, str, List[str]]]]:
+    """Loads the static set of connections."""
+    with open('data/connections.json') as f:
+        return json.load(f)
 
 
-def load_graph() -> nx.DiGraph:
-    """Loads the static cross-reference graph."""
-    graph = nx.read_graphml('data/scripture_graph.graphml')
-    remove_topic_nodes(graph)
-    return graph
+CONNECTIONS = load_connections()
 
 
-GRAPH = load_graph()
-
-
-def get_edges(verse: str) -> Tuple[Set[str], Set[str], Set[str]]:
+def get_edges(verse: str) -> Tuple[List[str], List[str], List[str]]:
     """Fetches the incoming and outgoing edges for a verse."""
-    incoming = set()
-    outgoing = set()
-    suggested = set()
-    for source, target in GRAPH.in_edges(verse):
-        assert target == verse
-        kind = GRAPH.edges[(source, target)].get('kind')
-        if kind:
-            suggested.add(source)
-        else:
-            incoming.add(source)
-    for source, target in GRAPH.out_edges(verse):
-        assert source == verse
-        kind = GRAPH.edges[(source, target)].get('kind')
-        if kind:
-            suggested.add(target)
-        else:
-            outgoing.add(target)
+    data = CONNECTIONS[verse]
+    incoming = data.get('incoming', [])
+    outgoing = data.get('outgoing', [])
+    suggested = data.get('suggested', [])
     return incoming, outgoing, suggested
 
 
@@ -181,7 +151,7 @@ def warmup():
 
 def get_verse_url(verse: str) -> str:
     """Creates a URL for the verse text."""
-    node = GRAPH.nodes[verse]
+    node = CONNECTIONS[verse]
     volume = scripture_graph.VOLUMES_SHORT[node['volume']].lower()
     if volume == 'bom':
         volume = 'bofm'
@@ -213,7 +183,7 @@ def sort_verses(verses: Iterable[str]) -> List[str]:
 
 def _sort_verses(verse: str) -> Tuple[int, int, int]:
     """Key function for sort_verses."""
-    node = GRAPH.nodes[verse]
+    node = CONNECTIONS[verse]
     return BOOK_ORDER[node['book']], node['chapter'], node['verse']
 
 
