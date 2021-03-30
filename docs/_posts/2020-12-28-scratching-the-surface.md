@@ -223,8 +223,8 @@ Updates:
   the top-ranked verses rather than two from each volume.
 * {:.note} **January 4,
   2021:** [Updated](https://github.com/skearnes/scripture-graph/pull/8)
-  the reference parsing code to handle multiple verses in the same chapter (
-  e.g. "1&nbsp;Ne.&nbsp;3:7,&nbsp;10" now creates edges to 1&nbsp;Ne.&nbsp;3:7
+  the reference parsing code to handle multiple verses in the same chapter 
+  (e.g. "1&nbsp;Ne.&nbsp;3:7,&nbsp;10" now creates edges to 1&nbsp;Ne.&nbsp;3:7
   and 1&nbsp;Ne.&nbsp;3:10). This changed the edge count from 45,786 to
   45,985.
   
