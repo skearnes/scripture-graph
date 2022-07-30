@@ -30,7 +30,7 @@ setup(
         "tensorflow>=2.4.1",
         "tensorflow-hub>=0.11.0",
     ],
-extras_require={
+    extras_require={
         "tests": [
             "black[jupyter]>=22.3.0",
             "coverage>=5.2.1",
