@@ -22,6 +22,7 @@ setup(
     python_requires=">=3.9",
     install_requires=[
         "cssselect>=1.1.0",
+        "docopt>=0.6.2",
         "lxml>=4.6.2",
         "networkx>=2.5",
         "numpy>=1.19.2",
