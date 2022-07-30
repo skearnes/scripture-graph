@@ -16,4 +16,19 @@
 from setuptools import find_packages
 from setuptools import setup
 
-setup(name="scripture-graph", packages=find_packages())
+setup(
+    name="scripture-graph",
+    packages=find_packages(),
+    python_requires=">=3.9",
+    install_requires=[
+        "cssselect>=1.1.0",
+        "lxml>=4.6.2",
+        "networkx>=2.5",
+        "numpy>=1.19.2",
+        "pandas>=1.1.5",
+        "pytest>=7.1.2",
+        "seaborn>=0.11.1",
+        "tensorflow>=2.4.1",
+        "tensorflow-hub>=0.11.0",
+    ],
+)

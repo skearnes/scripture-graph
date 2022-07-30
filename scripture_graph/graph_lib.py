@@ -299,7 +299,7 @@ def parse_reference(text: str) -> list[str]:
     for pattern, repl in replacements.items():
         text = re.sub(pattern, repl, text)
     matches = re.findall(
-        r"((?:JST\s)?\d*\s?[a-zA-Z\s&—]+\.?)\s" r"((?:\d+:(?:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:,\s)?)+(?:;\s)?)+)", text
+        r"((?:JST\s)?\d*\s?[a-zA-Z\s&—]+\.?)\s((?:\d+:(?:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:,\s)?)+(?:;\s)?)+)", text
     )
     # NOTE(kearnes): This is a list of reference prefixes that don't fit the
     # standard syntax and that I have manually checked for exclusion.

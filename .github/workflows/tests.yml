@@ -30,7 +30,9 @@ jobs:
           python setup.py install
       - name: Run tests
         run: |
-          ./run_tests.sh
+          coverage erase
+          pytest --cov=ord_schema
+          coverage xml
           
   check_licenses:
     runs-on: ubuntu-latest
