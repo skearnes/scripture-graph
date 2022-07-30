@@ -1,4 +1,4 @@
-# Copyright 2020 Steven Kearnes
+# Copyright 2020-2022 Steven Kearnes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,62 +20,57 @@ jobs:
   test_scripture_graph:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
       - name: Install scripture-graph
         run: |
-          cd "${GITHUB_WORKSPACE}"
-          pip install -r requirements.txt
-          python setup.py install
+          python -m pip install .[tests]
       - name: Run tests
         run: |
-          cd "${GITHUB_WORKSPACE}"
-          ./run_tests.sh
+          coverage erase
+          pytest --cov=scripture_graph
+          coverage xml
+      - uses: codecov/codecov-action@v3
           
   check_licenses:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-go@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
     - name: Install addlicense
       run: go get -v -u github.com/google/addlicense
     - name: Run addlicense
       run: |
-        cd "${GITHUB_WORKSPACE}"
         "${HOME}/go/bin/addlicense" -check -c "Steven Kearnes" -l apache .
   
   check_python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
-      - name: Run yapf
-        run: |
-          cd "${GITHUB_WORKSPACE}"
-          pip install yapf
-          yapf --parallel --recursive --quiet .
+          python-version: '3.9'
       - name: Install scripture-graph
         run: |
-          cd "${GITHUB_WORKSPACE}"
-          pip install -r requirements.txt
-          python setup.py install
+          python -m pip install .[tests]
+      - name: Run black
+        run: |
+          black --check .
       - name: Run pylint
         run: |
-          cd "${GITHUB_WORKSPACE}"
-          pip install pylint
           pylint scripture_graph *.py
+      - name: Run pytype
+        run: |
+          pytype scripture_graph *.py
 
   check_javascript:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: clang-format
         run: |
-          cd "${GITHUB_WORKSPACE}"
           sudo apt update && sudo apt install clang-format-10 --yes
           # NOTE(kearnes): Run clang-format before installing anything with npm.
           find . -name '*.js' -exec clang-format-10 -n -Werror {} +

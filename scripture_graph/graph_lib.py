@@ -1,4 +1,4 @@
-# Copyright 2020 Steven Kearnes
+# Copyright 2020-2022 Steven Kearnes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utilities for parsing scriptures EPUB into verses and references."""
-
 import collections
 import dataclasses
 import io
 import json
+import logging
 import os
 import re
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Optional
 import zipfile
 
-from absl import logging
 from lxml import cssselect
 from lxml import etree
 import networkx as nx
@@ -32,11 +31,13 @@ import tensorflow_hub as hub
 
 import scripture_graph
 
+logger = logging.getLogger(__name__)
+
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
 
 # XML namespaces.
-NAMESPACES = {'default': 'http://www.w3.org/1999/xhtml'}
+NAMESPACES = {"default": "http://www.w3.org/1999/xhtml"}
 
 
 def get_volume(book: str) -> str:
@@ -44,12 +45,13 @@ def get_volume(book: str) -> str:
     for volume, books in scripture_graph.VOLUMES.items():
         if book in books:
             return volume
-    raise ValueError(f'unrecognized book: {book}')
+    raise ValueError(f"unrecognized book: {book}")
 
 
 @dataclasses.dataclass(frozen=True)
 class Verse:
     """A single verse of scripture."""
+
     book: str
     chapter: int
     verse: int
@@ -59,6 +61,7 @@ class Verse:
 @dataclasses.dataclass(frozen=True)
 class Reference:
     """A directed reference from one verse to another."""
+
     source: str
     target: str
 
@@ -66,6 +69,7 @@ class Reference:
 @dataclasses.dataclass(frozen=True)
 class Topic:
     """A topic that cites many scriptures."""
+
     source: str
     title: str
 
@@ -79,9 +83,10 @@ class ScriptureGraph:
         topics: Dict of `Topic`s keyed by reference form (e.g. "TG Aaron").
         references: List of `Reference`s.
     """
-    verses: Dict[str, Verse] = dataclasses.field(default_factory=dict)
-    topics: Dict[str, Topic] = dataclasses.field(default_factory=dict)
-    references: List[Reference] = dataclasses.field(default_factory=list)
+
+    verses: dict[str, Verse] = dataclasses.field(default_factory=dict)
+    topics: dict[str, Topic] = dataclasses.field(default_factory=dict)
+    references: list[Reference] = dataclasses.field(default_factory=list)
 
     def update(self, other):
         """Updates the current graph with `other`."""
@@ -90,10 +95,12 @@ class ScriptureGraph:
         self.references.extend(other.references)
 
     def __repr__(self):
-        return ('ScriptureGraph:\n'
-                f'\t{len(self.verses)} verses\n'
-                f'\t{len(self.topics)} topics\n'
-                f'\t{len(self.references)} references')
+        return (
+            "ScriptureGraph:\n"
+            f"\t{len(self.verses)} verses\n"
+            f"\t{len(self.topics)} topics\n"
+            f"\t{len(self.references)} references"
+        )
 
 
 def read_epub(filename: str) -> ScriptureGraph:
@@ -106,28 +113,45 @@ def read_epub(filename: str) -> ScriptureGraph:
         ScriptureGraph.
     """
     graph = ScriptureGraph()
-    skipped = ('abr_fac', 'bofm', 'cover', 'dc-testament', 'history-', 'od_',
-               'pgp', 'triple-', 'triple_', 'bd', 'tg', 'bible-', 'bible_',
-               'harmony.', 'jst', 'nt.', 'ot.', 'quad')
+    skipped = (
+        "abr_fac",
+        "bofm",
+        "cover",
+        "dc-testament",
+        "history-",
+        "od_",
+        "pgp",
+        "triple-",
+        "triple_",
+        "bd",
+        "tg",
+        "bible-",
+        "bible_",
+        "harmony.",
+        "jst",
+        "nt.",
+        "ot.",
+        "quad",
+    )
     with zipfile.ZipFile(filename) as archive:
         for info in archive.infolist():
-            if not info.filename.endswith('.xhtml'):
+            if not info.filename.endswith(".xhtml"):
                 continue
             data = io.BytesIO(archive.read(info))
             tree = etree.parse(data)
             basename = os.path.basename(info.filename)
-            if basename.startswith('bd_'):
+            if basename.startswith("bd_"):
                 continue
-            if basename.startswith('tg_'):
+            if basename.startswith("tg_"):
                 topic = get_title(tree)
-                key = f'TG {topic}'
-                graph.topics[key] = Topic(source='TG', title=topic)
+                key = f"TG {topic}"
+                graph.topics[key] = Topic(source="TG", title=topic)
                 graph.references.extend(read_topic(tree, source=key))
                 continue
-            if basename.startswith('triple-index_'):
+            if basename.startswith("triple-index_"):
                 topic = get_title(tree)
-                key = f'ITC {topic}'
-                graph.topics[key] = Topic(source='ITC', title=topic)
+                key = f"ITC {topic}"
+                graph.topics[key] = Topic(source="ITC", title=topic)
                 graph.references.extend(read_topic(tree, source=key))
                 continue
             if basename.startswith(skipped):
@@ -136,7 +160,7 @@ def read_epub(filename: str) -> ScriptureGraph:
             if not chapter:
                 continue
             graph.verses.update(read_verses(tree, book, chapter))
-            if book == 'JS—H':
+            if book == "JS—H":
                 continue  # JS—H has no references.
             graph.references.extend(read_references(tree, book, chapter))
     return graph
@@ -144,14 +168,14 @@ def read_epub(filename: str) -> ScriptureGraph:
 
 def get_title(tree) -> str:
     """Extracts the title from an ElementTree."""
-    selector = cssselect.CSSSelector('default|title', namespaces=NAMESPACES)
+    selector = cssselect.CSSSelector("default|title", namespaces=NAMESPACES)
     headers = selector(tree)
     if len(headers) != 1:
-        raise ValueError(f'unexpected number of titles: {headers}')
+        raise ValueError(f"unexpected number of titles: {headers}")
     return headers[0].text
 
 
-def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
+def read_headers(tree) -> tuple[Optional[str], Optional[int]]:
     """Finds the book and chapter for the given document.
 
     Returns:
@@ -159,17 +183,16 @@ def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
         chapter: Chapter or section number (or None if not found).
     """
     title = get_title(tree)
-    book = title.split('Chapter')[0].split('Section')[0].split(
-        'Psalm ')[0].strip()
+    book = title.split("Chapter")[0].split("Section")[0].split("Psalm ")[0].strip()
     book_short = scripture_graph.BOOKS_SHORT[book]
-    title_number = cssselect.CSSSelector('.titleNumber')(tree)
+    title_number = cssselect.CSSSelector(".titleNumber")(tree)
     if not title_number:
         return None, None  # Table of contents, etc.
     chapter = int(list(title_number[0].itertext())[0].split()[-1])
     return book_short, chapter
 
 
-def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
+def read_verses(tree, book: str, chapter: int) -> dict[str, Verse]:
     """Finds `Verse`s in the current document.
 
     Args:
@@ -181,26 +204,25 @@ def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
         Dict of `Verse`s keyed by the reference form (e.g. "1 Ne. 3:7").
     """
     verses = {}
-    for verse_element in cssselect.CSSSelector('.verse-first,.verse')(tree):
+    for verse_element in cssselect.CSSSelector(".verse-first,.verse")(tree):
         verse = None
         for element in verse_element.iter():
-            if element.get('class') == 'verseNumber':
+            if element.get("class") == "verseNumber":
                 verse = int(list(element.itertext())[0])
             # Remove verse numbers and reference markers.
-            if element.get('class') in ['verseNumber', 'marker']:
+            if element.get("class") in ["verseNumber", "marker"]:
                 element.clear(keep_tail=True)
-        text = ''.join(verse_element.itertext())
+        text = "".join(verse_element.itertext())
         if not verse:
-            if text.startswith(('After prayer',)):
+            if text.startswith(("After prayer",)):
                 continue  # D&C 102:34.
-            raise ValueError(
-                f'could not find verse number for {book} {chapter}: {text}')
-        key = f'{book} {chapter}:{verse}'
+            raise ValueError(f"could not find verse number for {book} {chapter}: {text}")
+        key = f"{book} {chapter}:{verse}"
         verses[key] = Verse(book=book, chapter=chapter, verse=verse, text=text)
     return verses
 
 
-def read_references(tree, book: str, chapter: int) -> List[Reference]:
+def read_references(tree, book: str, chapter: int) -> list[Reference]:
     """Finds `Reference`s in the current document.
 
     Args:
@@ -216,30 +238,31 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
     # we keep track of the current verse as we iterate.
     verse = None
     p_tag = f'{{{NAMESPACES["default"]}}}p'
-    for reference_element in cssselect.CSSSelector('.listItem')(tree):
+    for reference_element in cssselect.CSSSelector(".listItem")(tree):
         targets = []
         for element in reference_element.iter():
-            if element.get('class') == 'label-verse':
+            if element.get("class") == "label-verse":
                 verse = int(list(element.itertext())[0])
             # NOTE(kearnes): Most (but not all) references have the
             # "scriptureRef" class. This ambiguity means we have to resort to
             # regexes instead of simply walking through the tree.
-            if element.tag == p_tag and 'class' not in element.attrib:
-                targets.extend(parse_reference(''.join(element.itertext())))
+            if element.tag == p_tag and "class" not in element.attrib:
+                targets.extend(parse_reference("".join(element.itertext())))
         if not verse:
             raise ValueError(
-                'could not find verse number for reference in '
-                f'{book} {chapter}: {"".join(reference_element.itertext())}')
-        source = f'{book} {chapter}:{verse}'
+                "could not find verse number for reference in "
+                f'{book} {chapter}: {"".join(reference_element.itertext())}'
+            )
+        source = f"{book} {chapter}:{verse}"
         for target in targets:
             if target == source:
                 # Should never happen; if it does it's a bug.
-                raise ValueError(f'self-reference: {source}')
+                raise ValueError(f"self-reference: {source}")
             references.append(Reference(source=source, target=target))
     return references
 
 
-def parse_reference(text: str) -> List[str]:
+def parse_reference(text: str) -> list[str]:
     """Parses a single reference.
 
     References have several forms:
@@ -265,73 +288,158 @@ def parse_reference(text: str) -> List[str]:
     """
     targets = []
     replacements = {
-        r'D&C 13[\.;]': 'D&C 13:1',  # One-verse section.
-        r'D&C 116[\.;]': 'D&C 116:1',  # One-verse section.
-        '\xa0': ' ',  # Non-breaking space.
-        'Song ': 'Song. ',  # Inconsistent abbreviation.
+        r"D&C 13[\.;]": "D&C 13:1",  # One-verse section.
+        r"D&C 116[\.;]": "D&C 116:1",  # One-verse section.
+        "\xa0": " ",  # Non-breaking space.
+        "Song ": "Song. ",  # Inconsistent abbreviation.
         # Chapter references.
-        'Lam. 1–5; ': '',
-        'Heb. 11; ': '',
+        "Lam. 1–5; ": "",
+        "Heb. 11; ": "",
     }
     for pattern, repl in replacements.items():
         text = re.sub(pattern, repl, text)
     matches = re.findall(
-        r'((?:JST\s)?\d*\s?[a-zA-Z\s&—]+\.?)\s'
-        r'((?:\d+:(?:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:,\s)?)+(?:;\s)?)+)', text)
+        r"((?:JST\s)?\d*\s?[a-zA-Z\s&—]+\.?)\s((?:\d+:(?:\d+(?:\s\(\d+[-–,]\s?\d+\))?(?:,\s)?)+(?:;\s)?)+)", text
+    )
     # NOTE(kearnes): This is a list of reference prefixes that don't fit the
     # standard syntax and that I have manually checked for exclusion.
-    skipped = ('See ', 'see ', 'Note ', 'note ', 'IE ', 'a land', 'Recall',
-               'in', 'The ', 'the ', 'also', 'and ', '7 and', 'Deuel',
-               'Details', 'as ', '20 and', '19 and', 'which ')
-    skipped += ('JST',)  # Skip JST references for now.
+    skipped = (
+        "See ",
+        "see ",
+        "Note ",
+        "note ",
+        "IE ",
+        "a land",
+        "Recall",
+        "in",
+        "The ",
+        "the ",
+        "also",
+        "and ",
+        "7 and",
+        "Deuel",
+        "Details",
+        "as ",
+        "20 and",
+        "19 and",
+        "which ",
+    )
+    skipped += ("JST",)  # Skip JST references for now.
     for match in matches:
-        for chapter_verse in match[1].split(';'):
+        for chapter_verse in match[1].split(";"):
             if not chapter_verse.strip():
                 continue
             book = match[0].strip()
             if book not in scripture_graph.BOOKS_SHORT.values():
                 if not book.startswith(skipped):
-                    raise ValueError(
-                        f'unrecognized reference to book: "{book}" ({text})')
+                    raise ValueError(f'unrecognized reference to book: "{book}" ({text})')
                 continue
-            chapter, verses = chapter_verse.split(':')
-            submatches = re.findall(r'(\d+)(?:\s\(\d+[-–,]\s?\d+\))?,?', verses)
+            chapter, verses = chapter_verse.split(":")
+            submatches = re.findall(r"(\d+)(?:\s\(\d+[-–,]\s?\d+\))?,?", verses)
             for verse in submatches:
                 verse = verse.split()[0]  # Remove verse ranges.
-                targets.append(f'{book} {int(chapter)}:{int(verse)}')
-    match = re.search(r'TG\s((?:(?:[a-zA-Z\s,-]+)(?:;\s)?)+)', text)
+                targets.append(f"{book} {int(chapter)}:{int(verse)}")
+    match = re.search(r"TG\s((?:(?:[a-zA-Z\s,-]+)(?:;\s)?)+)", text)
     if match:
-        for topic in match.group(1).split(';'):
-            targets.append(f'TG {topic.strip()}')
+        for topic in match.group(1).split(";"):
+            targets.append(f"TG {topic.strip()}")
     # NOTE(kearnes): This is a list of reference prefixes that don't fit the
     # standard syntax and that I have manually checked for exclusion.
-    allowed = ('BD', 'HEB', 'IE', 'See ', 'Comparison', 'The', 'Gnolaum', 'His',
-               'OR', 'Bath-shua', 'GR', 'Aramaic', 'Septuagint', 'It', 'Greek',
-               'In', 'What', 'This', 'More', 'Joab', 'Persian', 'According',
-               'Some', 'Hebrew', 'Samaritan', 'Variant', 'A ', 'Probably',
-               'All ', 'Progress', '“', 'Beginning', 'Isaiah chapters',
-               'Arabian', 'Despite', 'Israel', 'Possibly', 'Here', 'Several',
-               'Rabbinical', 'Other', 'Many', 'Syriac', 'Dogs', 'Wisdom',
-               'Implying', 'Compare', 'An ', '4 Ne. heading', 'Mal. 3–4.',
-               'D&C 74.', 'Matt. 24.', 'Apparently', 'Reference', 'Ezekiel',
-               'Do not', 'Grandson', 'Bel and', 'Jesus', 'Perhaps', 'Joseph')
+    allowed = (
+        "BD",
+        "HEB",
+        "IE",
+        "See ",
+        "Comparison",
+        "The",
+        "Gnolaum",
+        "His",
+        "OR",
+        "Bath-shua",
+        "GR",
+        "Aramaic",
+        "Septuagint",
+        "It",
+        "Greek",
+        "In",
+        "What",
+        "This",
+        "More",
+        "Joab",
+        "Persian",
+        "According",
+        "Some",
+        "Hebrew",
+        "Samaritan",
+        "Variant",
+        "A ",
+        "Probably",
+        "All ",
+        "Progress",
+        "“",
+        "Beginning",
+        "Isaiah chapters",
+        "Arabian",
+        "Despite",
+        "Israel",
+        "Possibly",
+        "Here",
+        "Several",
+        "Rabbinical",
+        "Other",
+        "Many",
+        "Syriac",
+        "Dogs",
+        "Wisdom",
+        "Implying",
+        "Compare",
+        "An ",
+        "4 Ne. heading",
+        "Mal. 3–4.",
+        "D&C 74.",
+        "Matt. 24.",
+        "Apparently",
+        "Reference",
+        "Ezekiel",
+        "Do not",
+        "Grandson",
+        "Bel and",
+        "Jesus",
+        "Perhaps",
+        "Joseph",
+    )
     allowed += skipped  # Skipped references often end up here again.
-    allowed += ('JST',)  # Skip JST references for now.
+    allowed += ("JST",)  # Skip JST references for now.
     # Add introductions for all D&C sections.
-    allowed += tuple(f'D&C {section}: Intro.' for section in range(1, 139))
-    allowed += ('OD 1', 'OD 2')
+    allowed += tuple(f"D&C {section}: Intro." for section in range(1, 139))
+    allowed += ("OD 1", "OD 2")
     # Other manual fixes for ITC.
-    allowed += ('3 Ne. 12–14; Matt. 5–7', 'D&C 2; 19; 22–23', 'D&C 22',
-                'D&C 51; D&C 54: Intro.; D&C 56: Intro.', 'D&C 61', 'D&C 77',
-                'D&C 89', 'D&C 100', 'D&C 108', 'D&C 111', 'D&C 116', 'D&C 121',
-                'D&C 125', 'D&C 130–31', 'D&C 136', 'D&C 138',
-                'Abr., fac. 2, fig. 2', 'Abr., fac. 3, fig. 6')
+    allowed += (
+        "3 Ne. 12–14; Matt. 5–7",
+        "D&C 2; 19; 22–23",
+        "D&C 22",
+        "D&C 51; D&C 54: Intro.; D&C 56: Intro.",
+        "D&C 61",
+        "D&C 77",
+        "D&C 89",
+        "D&C 100",
+        "D&C 108",
+        "D&C 111",
+        "D&C 116",
+        "D&C 121",
+        "D&C 125",
+        "D&C 130–31",
+        "D&C 136",
+        "D&C 138",
+        "Abr., fac. 2, fig. 2",
+        "Abr., fac. 3, fig. 6",
+    )
     if not targets and not text.startswith(allowed):
         raise ValueError(f'unrecognized reference syntax: "{text}"')
     return targets
 
 
-def read_topic(tree, source) -> List[Reference]:
+def read_topic(tree, source) -> list[Reference]:
     """Parses a Topical Guide or Index section.
 
     The reference format here is slightly different than that used in the
@@ -343,7 +451,7 @@ def read_topic(tree, source) -> List[Reference]:
     """
     references = []
     targets = []
-    selector = cssselect.CSSSelector('default|p.title', namespaces=NAMESPACES)
+    selector = cssselect.CSSSelector("default|p.title", namespaces=NAMESPACES)
     others = selector(tree)
     # NOTE(kearnes): Some topics have "see also" topics, others have "see also"
     # scriptures, and others have both or none. This is the best way I've come
@@ -351,64 +459,59 @@ def read_topic(tree, source) -> List[Reference]:
     #
     # Most topics don't have numbers in them; the ones that do are usually of
     # the form "Mosiah2" (for the second "Mosiah" character).
-    other_pattern = re.compile(r'\s\d')
+    other_pattern = re.compile(r"\s\d")
     # Parse the "see also" topic list.
     prefix = source.split()[0]
-    if others and not re.search(other_pattern, ''.join(others[0].itertext())):
-        text = ''.join(others[0].itertext())
-        text = re.sub('\xa0', ' ', text)
-        match = re.fullmatch(r'See (?:also )?(.*?)\.?', text)
+    if others and not re.search(other_pattern, "".join(others[0].itertext())):
+        text = "".join(others[0].itertext())
+        text = re.sub("\xa0", " ", text)
+        match = re.fullmatch(r"See (?:also )?(.*?)\.?", text)
         if not match:
-            raise ValueError(
-                f'failed to parse topic references for {source}: "{text}"')
-        for target in match.group(1).split(';'):
+            raise ValueError(f'failed to parse topic references for {source}: "{text}"')
+        for target in match.group(1).split(";"):
             target = target.strip()
-            if target.startswith(('BD',)):
+            if target.startswith(("BD",)):
                 break  # Any topics following this one are also in the BD.
-            if target.startswith('Bible Chronology in the appendix'):
+            if target.startswith("Bible Chronology in the appendix"):
                 continue
-            if target.startswith('TG'):
-                prefix = 'TG'
+            if target.startswith("TG"):
+                prefix = "TG"
             if not target.startswith(prefix):
-                target = f'{prefix} {target}'
+                target = f"{prefix} {target}"
             targets.append(target)
     # Parse the entries.
     entries = []
-    skipped = ('revelation received at', 'revelations received at',
-               'revelation designated as')
-    for reference_element in cssselect.CSSSelector('.entry')(tree):
-        if ''.join(reference_element.itertext()).startswith(skipped):
+    skipped = ("revelation received at", "revelations received at", "revelation designated as")
+    for reference_element in cssselect.CSSSelector(".entry")(tree):
+        if "".join(reference_element.itertext()).startswith(skipped):
             continue
         for element in reference_element.iter():
-            if element.get('class') == 'locator':
-                text = ''.join(element.itertext()).strip()
-                if text.endswith(';'):
+            if element.get("class") == "locator":
+                text = "".join(element.itertext()).strip()
+                if text.endswith(";"):
                     text = text[:-1]
                 entries.append(text)
     if entries:
         try:
-            targets.extend(parse_reference('; '.join(entries)))
+            targets.extend(parse_reference("; ".join(entries)))
         except ValueError as error:
             raise ValueError(source) from error
     # Parse the "see also" scripture list.
-    if others and re.search(other_pattern, ''.join(others[-1].itertext())):
-        text = ''.join(others[-1].itertext())
-        if text not in ['Summary', 'Compare also']:
-            match = re.fullmatch(r'See (?:also )?(.*?)\.?', text)
+    if others and re.search(other_pattern, "".join(others[-1].itertext())):
+        text = "".join(others[-1].itertext())
+        if text not in ["Summary", "Compare also"]:
+            match = re.fullmatch(r"See (?:also )?(.*?)\.?", text)
             if not match:
-                raise ValueError(
-                    f'failed to parse extra references for {source}: "{text}"')
+                raise ValueError(f'failed to parse extra references for {source}: "{text}"')
             targets.extend(parse_reference(match.group(1)))
     for target in targets:
-        if target.startswith('BD'):
-            raise ValueError(f'disallowed target for {source}: {target}')
+        if target.startswith("BD"):
+            raise ValueError(f"disallowed target for {source}: {target}")
         references.append(Reference(source=source, target=target))
     return references
 
 
-def correct_topic_references(
-        verses: Iterable[str], topics: Iterable[str],
-        references: Iterable[Reference]) -> List[Reference]:
+def correct_topic_references(verses: list[str], topics: list[str], references: list[Reference]) -> list[Reference]:
     """Corrects incomplete topic references.
 
     For instance, 1 Chr. 10:13 references 'TG Transgress'. However, the actual
@@ -444,70 +547,64 @@ def correct_topic_references(
         else:
             target = reference.target
         updated_references.append(Reference(source=source, target=target))
-    logging.info(f'made {count} topic translations')
+    logger.info(f"made {count} topic translations")
     return updated_references
 
 
-def _translate_topic(topic: str, topics: Iterable[str]) -> str:
+def _translate_topic(topic: str, topics: list[str]) -> str:
     """Translates an incomplete topic reference."""
     manual = {
-        'TG Bear [verb]': 'TG Bear, Bare, Born, Borne [verb]',
-        'TG Light [adjective]': 'TG Light, Lighter [adjective]',
-        'TG Close': 'TG Close [verb]',
-        'ITC Work [noun]': 'ITC Work, Works [noun]',
-        'ITC Meet [verb]': 'ITC Meet, Met, Meeting',
-        'ITC Bear [verb]': 'ITC Bear, Bore, Borne',
-        'ITC Spirit, Holy': 'ITC Spirit, Holy/Spirit of the Lord',
-        'ITC Shiblom1': 'ITC Shiblom1 [or Shiblon]',
+        "TG Bear [verb]": "TG Bear, Bare, Born, Borne [verb]",
+        "TG Light [adjective]": "TG Light, Lighter [adjective]",
+        "TG Close": "TG Close [verb]",
+        "ITC Work [noun]": "ITC Work, Works [noun]",
+        "ITC Meet [verb]": "ITC Meet, Met, Meeting",
+        "ITC Bear [verb]": "ITC Bear, Bore, Borne",
+        "ITC Spirit, Holy": "ITC Spirit, Holy/Spirit of the Lord",
+        "ITC Shiblom1": "ITC Shiblom1 [or Shiblon]",
     }
     if topic in manual:
         return manual[topic]
-    short_topic = ' '.join(topic.split()[1:])  # Remove the book name.
+    short_topic = " ".join(topic.split()[1:])  # Remove the book name.
     for title in topics:
-        short_title = ' '.join(title.split()[1:])
-        if short_topic in short_title.split(', '):
+        short_title = " ".join(title.split()[1:])
+        if short_topic in short_title.split(", "):
             return title
-    raise ValueError(f'no suitable translation for {topic}')
+    raise ValueError(f"no suitable translation for {topic}")
 
 
-def remove_topic_nodes(graph: nx.Graph):
+def remove_topic_nodes(graph: nx.Graph) -> None:
     """Drops topic nodes from the graph."""
-    logging.info('Dropping topic nodes')
-    logging.info('Original graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    logger.info("Dropping topic nodes")
+    logger.info(f"Original graph has {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges")
     drop = set()
     for node in graph.nodes:
-        if graph.nodes[node]['kind'] == 'topic':
+        if graph.nodes[node]["kind"] == "topic":
             drop.add(node)
     for node in drop:
         graph.remove_node(node)
-    logging.info('Updated graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    logger.info(f"Updated graph has {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges")
 
 
-def remove_suggested_edges(graph: nx.Graph):
+def remove_suggested_edges(graph: nx.Graph) -> None:
     """Drops non-canonical edges from the graph."""
-    logging.info('Dropping non-canonical edges')
-    logging.info('Original graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    logger.info("Dropping non-canonical edges")
+    logger.info(f"Original graph has {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges")
     drop = set()
     for edge in graph.edges:
-        if graph.edges[edge].get('kind'):
+        if graph.edges[edge].get("kind"):
             drop.add(edge)
     for edge in drop:
         graph.remove_edge(*edge)
-    logging.info('Updated graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    logger.info(f"Updated graph has {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges")
 
 
-def write_tree(graph: nx.Graph, filename: str):
+def write_tree(graph: nx.Graph, filename: str) -> None:
     """Writes a JSON navigation tree."""
     graph = graph.copy()
     remove_topic_nodes(graph)
     source = []
-    book_names = {
-        value: key for key, value in scripture_graph.BOOKS_SHORT.items()
-    }
+    book_names = {value: key for key, value in scripture_graph.BOOKS_SHORT.items()}
     for volume, books in scripture_graph.VOLUMES.items():
         if volume not in scripture_graph.VOLUMES_SHORT:
             continue
@@ -517,47 +614,34 @@ def write_tree(graph: nx.Graph, filename: str):
             verses = get_verses(graph, book_short)
             book_children = []
             for chapter_number in sorted(verses):
-                chapter = f'{book_short} {chapter_number}'
+                chapter = f"{book_short} {chapter_number}"
                 chapter_children = []
                 for verse_number in sorted(verses[chapter_number]):
-                    verse = f'{book_short} {chapter_number}:{verse_number}'
-                    chapter_children.append({
-                        'title': verse,
-                        'key': verse,
-                    })
-                book_children.append({
-                    'title': chapter,
-                    'key': chapter,
-                    'folder': True,
-                    'children': chapter_children
-                })
+                    verse = f"{book_short} {chapter_number}:{verse_number}"
+                    chapter_children.append(
+                        {
+                            "title": verse,
+                            "key": verse,
+                        }
+                    )
+                book_children.append({"title": chapter, "key": chapter, "folder": True, "children": chapter_children})
             if len(book_children) == 1:
-                book_children = book_children[0]['children']
-            volume_children.append({
-                'title': book,
-                'key': book,
-                'folder': True,
-                'children': book_children
-            })
+                book_children = book_children[0]["children"]
+            volume_children.append({"title": book, "key": book, "folder": True, "children": book_children})
         if len(volume_children) == 1:
-            volume_children = volume_children[0]['children']
-        source.append({
-            'title': volume,
-            'key': volume,
-            'folder': True,
-            'children': volume_children
-        })
-    with open(filename, 'w', encoding="utf-8") as f:
+            volume_children = volume_children[0]["children"]
+        source.append({"title": volume, "key": volume, "folder": True, "children": volume_children})
+    with open(filename, "w", encoding="utf-8") as f:
         json.dump(source, f, indent=2)
 
 
-def get_verses(graph: nx.Graph, book: str) -> Dict[int, List[str]]:
+def get_verses(graph: nx.Graph, book: str) -> dict[int, list[str]]:
     """Returns a dict mapping chapter numbers to verse counts for a book."""
     verses = collections.defaultdict(list)
     for node in graph.nodes:
         data = graph.nodes[node]
-        if data['book'] == book:
-            verses[data['chapter']].append(data['verse'])
+        if data["book"] == book:
+            verses[data["chapter"]].append(data["verse"])
     return verses
 
 
@@ -604,16 +688,14 @@ def angular_cosine(embeddings: np.ndarray) -> np.ndarray:
 
 def prepare_text(text: str) -> str:
     """Prepares text for embedding."""
-    return text.replace('¶', '').strip().lower()
+    return text.replace("¶", "").strip().lower()
 
 
-def get_embeddings(graph: nx.Graph,
-                   model_url: str,
-                   batch_size: Optional[int] = None) -> np.ndarray:
+def get_embeddings(graph: nx.Graph, model_url: str, batch_size: Optional[int] = None) -> np.ndarray:
     """Computes verse embeddings using a pretrained NLP model."""
     verses = []
     for node in graph.nodes:
-        verses.append(prepare_text(graph.nodes[node]['text']))
+        verses.append(prepare_text(graph.nodes[node]["text"]))
     model = hub.load(model_url)
     if batch_size:
         embeddings = []
@@ -629,13 +711,13 @@ def get_embeddings(graph: nx.Graph,
     return model(verses).numpy()
 
 
-def _add_suggested_edges(graph: nx.DiGraph, suggested: pd.DataFrame, kind: str):
+def _add_suggested_edges(graph: nx.DiGraph, suggested: pd.DataFrame, kind: str) -> None:
     """Adds suggested edges to the graph."""
-    logging.info('Adding %d suggested edges', suggested.shape[0])
+    logger.info(f"Adding {suggested.shape[0]} suggested edges")
     for row in suggested.itertuples():
         graph.add_edge(row.a, row.b, kind=kind)
         graph.add_edge(row.b, row.a, kind=kind)
-    suggested['kind'] = kind
+    suggested["kind"] = kind
 
 
 def add_jaccard_edges(digraph: nx.DiGraph) -> pd.DataFrame:
@@ -657,22 +739,22 @@ def add_jaccard_edges(digraph: nx.DiGraph) -> pd.DataFrame:
     nonzero = get_nonzero_edges(graph, similarity)
     mask = (~nonzero.exists) & (nonzero.intersection > 1)
     suggested = nonzero[mask].copy()
-    _add_suggested_edges(digraph, suggested, kind='jaccard')
+    _add_suggested_edges(digraph, suggested, kind="jaccard")
     return suggested
 
 
 def add_use_edges(digraph: nx.DiGraph, threshold: float) -> pd.DataFrame:
     """Adds suggested edges to the graph using USE embedding similarity."""
-    model_url = 'https://tfhub.dev/google/universal-sentence-encoder-large/5'
+    model_url = "https://tfhub.dev/google/universal-sentence-encoder-large/5"
     graph = digraph.copy()
     remove_topic_nodes(graph)
     embeddings = get_embeddings(graph, model_url=model_url, batch_size=1000)
     similarity = angular_cosine(embeddings)
     similarity[similarity < threshold] = 0.0
     nonzero = get_nonzero_edges(graph, similarity)
-    mask = (~nonzero.exists)
+    mask = ~nonzero.exists
     suggested = nonzero[mask].copy()
-    _add_suggested_edges(digraph, suggested, kind='use')
+    _add_suggested_edges(digraph, suggested, kind="use")
     return suggested
 
 
@@ -685,17 +767,19 @@ def get_nonzero_edges(graph: nx.Graph, similarity: np.ndarray) -> pd.DataFrame:
         order = sorted([nodes[i], nodes[j]])
         a = set(n[1] for n in graph.edges(order[0]))
         b = set(n[1] for n in graph.edges(order[1]))
-        rows.append({
-            'a': order[0],
-            'b': order[1],
-            'similarity': similarity[i, j],
-            'intersection': len(a & b),
-            'union': len(a | b),
-        })
+        rows.append(
+            {
+                "a": order[0],
+                "b": order[1],
+                "similarity": similarity[i, j],
+                "intersection": len(a & b),
+                "union": len(a | b),
+            }
+        )
     df = pd.DataFrame(rows)
-    logging.info('All nonzero pairs: %s', df.shape)
-    df = df.drop_duplicates(['a', 'b']).reset_index()
-    logging.info('Unique nonzero pairs: %s', df.shape)
+    logger.info(f"All nonzero pairs: {df.shape}")
+    df = df.drop_duplicates(["a", "b"]).reset_index()
+    logger.info(f"Unique nonzero pairs: {df.shape}")
     # Annotate connections that already exist.
     exists = []
     for row in df.itertuples():
@@ -703,6 +787,6 @@ def get_nonzero_edges(graph: nx.Graph, similarity: np.ndarray) -> pd.DataFrame:
             exists.append(True)
         else:
             exists.append(False)
-    df['exists'] = exists
-    logging.info('Previously existing pairs: %d', df.exists.sum())
+    df["exists"] = exists
+    logger.info(f"Previously existing pairs: {df.exists.sum()}")
     return df

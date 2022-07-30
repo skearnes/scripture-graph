@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2020 Steven Kearnes
+# Copyright 2020-2022 Steven Kearnes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ else
   echo "Please install Go; see https://golang.org/doc/install"
 fi
 # Format python.
-if ! command -v yapf &> /dev/null; then
-  pip install yapf
+if ! command -v black &> /dev/null; then
+  pip install black[jupyter]
 fi
-yapf -p -r "${ROOT_DIR}" --in-place
+black "${ROOT_DIR}"
 # Format javascript.
 if command -v clang-format-10 &> /dev/null; then
   find "${ROOT_DIR}" -name '*.js' -exec clang-format-10 -i {} +
