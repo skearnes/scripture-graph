@@ -62,7 +62,7 @@ def main(argv):
             connections[verse]['outgoing'] = list(outgoing)
         if suggested:
             connections[verse]['suggested'] = list(suggested)
-    with open(FLAGS.output, 'w') as f:
+    with open(FLAGS.output, 'w', encoding="utf-8") as f:
         json.dump(connections, f, indent=2)
 
 
