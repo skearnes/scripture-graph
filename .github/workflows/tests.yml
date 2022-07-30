@@ -30,8 +30,9 @@ jobs:
       - name: Run tests
         run: |
           coverage erase
-          pytest --cov=ord_schema
+          pytest --cov=scripture_graph
           coverage xml
+      - uses: codecov/codecov-action@v3
           
   check_licenses:
     runs-on: ubuntu-latest
