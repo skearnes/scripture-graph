@@ -20,8 +20,8 @@ jobs:
   test_scripture_graph:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
       - name: Install scripture-graph
@@ -37,8 +37,8 @@ jobs:
   check_licenses:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-go@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
     - name: Install addlicense
       run: go get -v -u github.com/google/addlicense
     - name: Run addlicense
@@ -48,8 +48,8 @@ jobs:
   check_python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
       - name: Install scripture-graph
@@ -68,7 +68,7 @@ jobs:
   check_javascript:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: clang-format
         run: |
           sudo apt update && sudo apt install clang-format-10 --yes
