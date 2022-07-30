@@ -1,4 +1,4 @@
-# Copyright 2020 Steven Kearnes
+# Copyright 2020-2022 Steven Kearnes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utilities for parsing scriptures EPUB into verses and references."""
-
 import collections
 import dataclasses
 import io
 import json
+import logging
 import os
 import re
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Optional
 import zipfile
 
-from absl import logging
 from lxml import cssselect
 from lxml import etree
 import networkx as nx
@@ -31,6 +30,8 @@ import pandas as pd
 import tensorflow_hub as hub
 
 import scripture_graph
+
+logger = logging.getLogger(__name__)
 
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
@@ -151,7 +152,7 @@ def get_title(tree) -> str:
     return headers[0].text
 
 
-def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
+def read_headers(tree) -> tuple[Optional[str], Optional[int]]:
     """Finds the book and chapter for the given document.
 
     Returns:
@@ -169,7 +170,7 @@ def read_headers(tree) -> Tuple[Optional[str], Optional[int]]:
     return book_short, chapter
 
 
-def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
+def read_verses(tree, book: str, chapter: int) -> dict[str, Verse]:
     """Finds `Verse`s in the current document.
 
     Args:
@@ -200,7 +201,7 @@ def read_verses(tree, book: str, chapter: int) -> Dict[str, Verse]:
     return verses
 
 
-def read_references(tree, book: str, chapter: int) -> List[Reference]:
+def read_references(tree, book: str, chapter: int) -> list[Reference]:
     """Finds `Reference`s in the current document.
 
     Args:
@@ -239,7 +240,7 @@ def read_references(tree, book: str, chapter: int) -> List[Reference]:
     return references
 
 
-def parse_reference(text: str) -> List[str]:
+def parse_reference(text: str) -> list[str]:
     """Parses a single reference.
 
     References have several forms:
@@ -331,7 +332,7 @@ def parse_reference(text: str) -> List[str]:
     return targets
 
 
-def read_topic(tree, source) -> List[Reference]:
+def read_topic(tree, source) -> list[Reference]:
     """Parses a Topical Guide or Index section.
 
     The reference format here is slightly different than that used in the
@@ -406,9 +407,7 @@ def read_topic(tree, source) -> List[Reference]:
     return references
 
 
-def correct_topic_references(
-        verses: Iterable[str], topics: Iterable[str],
-        references: Iterable[Reference]) -> List[Reference]:
+def correct_topic_references(verses: list[str], topics: list[str], references: list[Reference]) -> list[Reference]:
     """Corrects incomplete topic references.
 
     For instance, 1 Chr. 10:13 references 'TG Transgress'. However, the actual
@@ -444,11 +443,11 @@ def correct_topic_references(
         else:
             target = reference.target
         updated_references.append(Reference(source=source, target=target))
-    logging.info(f'made {count} topic translations')
+    logger.info(f'made {count} topic translations')
     return updated_references
 
 
-def _translate_topic(topic: str, topics: Iterable[str]) -> str:
+def _translate_topic(topic: str, topics: list[str]) -> str:
     """Translates an incomplete topic reference."""
     manual = {
         'TG Bear [verb]': 'TG Bear, Bare, Born, Borne [verb]',
@@ -470,37 +469,33 @@ def _translate_topic(topic: str, topics: Iterable[str]) -> str:
     raise ValueError(f'no suitable translation for {topic}')
 
 
-def remove_topic_nodes(graph: nx.Graph):
+def remove_topic_nodes(graph: nx.Graph) -> None:
     """Drops topic nodes from the graph."""
-    logging.info('Dropping topic nodes')
-    logging.info('Original graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    logger.info('Dropping topic nodes')
+    logger.info(f'Original graph has {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges')
     drop = set()
     for node in graph.nodes:
         if graph.nodes[node]['kind'] == 'topic':
             drop.add(node)
     for node in drop:
         graph.remove_node(node)
-    logging.info('Updated graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    logger.info(f'Updated graph has {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges')
 
 
-def remove_suggested_edges(graph: nx.Graph):
+def remove_suggested_edges(graph: nx.Graph) -> None:
     """Drops non-canonical edges from the graph."""
-    logging.info('Dropping non-canonical edges')
-    logging.info('Original graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    logger.info('Dropping non-canonical edges')
+    logger.info(f'Original graph has {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges')
     drop = set()
     for edge in graph.edges:
         if graph.edges[edge].get('kind'):
             drop.add(edge)
     for edge in drop:
         graph.remove_edge(*edge)
-    logging.info('Updated graph has %d nodes and %d edges',
-                 graph.number_of_nodes(), graph.number_of_edges())
+    logger.info(f'Updated graph has {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges')
 
 
-def write_tree(graph: nx.Graph, filename: str):
+def write_tree(graph: nx.Graph, filename: str) -> None:
     """Writes a JSON navigation tree."""
     graph = graph.copy()
     remove_topic_nodes(graph)
@@ -551,7 +546,7 @@ def write_tree(graph: nx.Graph, filename: str):
         json.dump(source, f, indent=2)
 
 
-def get_verses(graph: nx.Graph, book: str) -> Dict[int, List[str]]:
+def get_verses(graph: nx.Graph, book: str) -> dict[int, list[str]]:
     """Returns a dict mapping chapter numbers to verse counts for a book."""
     verses = collections.defaultdict(list)
     for node in graph.nodes:
@@ -629,9 +624,9 @@ def get_embeddings(graph: nx.Graph,
     return model(verses).numpy()
 
 
-def _add_suggested_edges(graph: nx.DiGraph, suggested: pd.DataFrame, kind: str):
+def _add_suggested_edges(graph: nx.DiGraph, suggested: pd.DataFrame, kind: str) -> None:
     """Adds suggested edges to the graph."""
-    logging.info('Adding %d suggested edges', suggested.shape[0])
+    logger.info(f'Adding {suggested.shape[0]} suggested edges')
     for row in suggested.itertuples():
         graph.add_edge(row.a, row.b, kind=kind)
         graph.add_edge(row.b, row.a, kind=kind)
@@ -693,9 +688,9 @@ def get_nonzero_edges(graph: nx.Graph, similarity: np.ndarray) -> pd.DataFrame:
             'union': len(a | b),
         })
     df = pd.DataFrame(rows)
-    logging.info('All nonzero pairs: %s', df.shape)
+    logger.info(f'All nonzero pairs: {df.shape}')
     df = df.drop_duplicates(['a', 'b']).reset_index()
-    logging.info('Unique nonzero pairs: %s', df.shape)
+    logger.info(f'Unique nonzero pairs: {df.shape}')
     # Annotate connections that already exist.
     exists = []
     for row in df.itertuples():
@@ -704,5 +699,5 @@ def get_nonzero_edges(graph: nx.Graph, similarity: np.ndarray) -> pd.DataFrame:
         else:
             exists.append(False)
     df['exists'] = exists
-    logging.info('Previously existing pairs: %d', df.exists.sum())
+    logger.info(f'Previously existing pairs: {df.exists.sum()}')
     return df

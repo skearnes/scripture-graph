@@ -16,7 +16,7 @@
 import itertools
 import json
 import logging
-from typing import Dict, Iterable, List, Tuple, Union
+from typing import Union
 from urllib import parse
 
 import flask
@@ -26,7 +26,7 @@ import scripture_graph
 app = flask.Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
-Elements = Dict[str, List[Dict[str, Dict[str, str]]]]
+Elements = dict[str, list[dict[str, dict[str, str]]]]
 
 URL_BASE = 'https://www.churchofjesuschrist.org/study/scriptures/'
 
@@ -40,7 +40,7 @@ BOOK_ORDER = dict(
         range(len(scripture_graph.BOOKS_SHORT))))
 
 
-def load_connections() -> Dict[str, Dict[str, Union[int, str, List[str]]]]:
+def load_connections() -> dict[str, dict[str, Union[int, str, list[str]]]]:
     """Loads the static set of connections."""
     with open('data/connections.json') as f:
         return json.load(f)
@@ -49,7 +49,7 @@ def load_connections() -> Dict[str, Dict[str, Union[int, str, List[str]]]]:
 CONNECTIONS = load_connections()
 
 
-def get_edges(verse: str) -> Tuple[List[str], List[str], List[str]]:
+def get_edges(verse: str) -> tuple[list[str], list[str], list[str]]:
     """Fetches the incoming and outgoing edges for a verse."""
     data = CONNECTIONS[verse]
     incoming = data.get('incoming', [])
@@ -144,7 +144,7 @@ def get_table() -> str:
 
 
 @app.route('/_ah/warmup')
-def warmup():
+def warmup() -> None:
     """Handle warmup requests from App Engine."""
     return flask.make_response('', 200)
 
@@ -176,12 +176,12 @@ def get_verse_url(verse: str) -> str:
                          f'{volume}/{book}/{chapter}.{i}?lang=eng#p{i}#{i}')
 
 
-def sort_verses(verses: Iterable[str]) -> List[str]:
+def sort_verses(verses: list[str]) -> list[str]:
     """Sorts verses in Standard Works order."""
     return sorted(verses, key=_sort_verses)
 
 
-def _sort_verses(verse: str) -> Tuple[int, int, int]:
+def _sort_verses(verse: str) -> tuple[int, int, int]:
     """Key function for sort_verses."""
     node = CONNECTIONS[verse]
     return BOOK_ORDER[node['book']], node['chapter'], node['verse']

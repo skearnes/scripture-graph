@@ -1,4 +1,4 @@
-# Copyright 2021 Steven Kearnes
+# Copyright 2021-2022 Steven Kearnes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility functions for working in Jupyter/Colab notebooks."""
-
-from typing import Mapping
-
 import pandas as pd
 import scipy.stats
 
 
-def assign_ranks(scores: Mapping[str, float]) -> pd.DataFrame:
+def assign_ranks(scores: dict[str, float]) -> pd.DataFrame:
     """Assigns ranks to per-object scores."""
     rows = []
     for key, value in scores.items():
