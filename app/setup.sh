@@ -18,5 +18,7 @@ set -ex
 mkdir -p data
 python ../scripture_graph/build_graph.py \
   --input_pattern="../*.epub" \
-  --output="data/scripture_graph.graphml" \
-  --tree="data/tree.json"
+  --output="data/scripture_graph.graphml"
+python ../scripture_graph/build_connections.py \
+  --input="data/scripture_graph.graphml" \
+  --output="data/connections.json"
