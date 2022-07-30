@@ -23,11 +23,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.9'
       - name: Install scripture-graph
         run: |
-          pip install -r requirements.txt
-          python setup.py install
+          python -m pip install .[tests]
       - name: Run tests
         run: |
           coverage erase
@@ -51,19 +50,19 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
-      - name: Run black
-        run: |
-          pip install black[jupyter]
-          black --check .
+          python-version: '3.9'
       - name: Install scripture-graph
         run: |
-          pip install -r requirements.txt
-          python setup.py install
+          python -m pip install .[tests]
+      - name: Run black
+        run: |
+          black --check .
       - name: Run pylint
         run: |
-          pip install pylint
           pylint scripture_graph *.py
+      - name: Run pytype
+        run: |
+          pytype scripture_graph *.py
 
   check_javascript:
     runs-on: ubuntu-latest

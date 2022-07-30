@@ -67,8 +67,8 @@ def main(**kwargs) -> None:
             volume = graph_lib.get_volume(topic.source)
             graph.add_node(key, kind="topic", volume=volume, **dataclasses.asdict(topic))
     references = graph_lib.correct_topic_references(
-        verses=scripture_graph.verses.keys(),
-        topics=scripture_graph.topics.keys(),
+        verses=list(scripture_graph.verses.keys()),
+        topics=list(scripture_graph.topics.keys()),
         references=scripture_graph.references,
     )
     duplicated_edges = 0

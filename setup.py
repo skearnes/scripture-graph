@@ -26,10 +26,18 @@ setup(
         "networkx>=2.5",
         "numpy>=1.19.2",
         "pandas>=1.1.5",
-        "pytest>=7.1.2",
-        "pytest-cov>=3.0.0",
         "seaborn>=0.11.1",
         "tensorflow>=2.4.1",
         "tensorflow-hub>=0.11.0",
     ],
+extras_require={
+        "tests": [
+            "black[jupyter]>=22.3.0",
+            "coverage>=5.2.1",
+            "pylint>=2.13.9",
+            "pytest>=7.1.1",
+            "pytest-cov>=3.0.0",
+            "pytype>=2022.5.19",
+        ],
+    },
 )
