@@ -20,7 +20,7 @@ def assign_ranks(scores: dict[str, float]) -> pd.DataFrame:
     """Assigns ranks to per-object scores."""
     rows = []
     for key, value in scores.items():
-        rows.append({'key': key, 'score': value})
+        rows.append({"key": key, "score": value})
     df = pd.DataFrame(rows)
-    df['rank'] = scipy.stats.rankdata(-1 * df.score.values, method='min')
-    return df.sort_values(['rank', 'key'], ignore_index=True)
+    df["rank"] = scipy.stats.rankdata(-1 * df.score.values, method="min")
+    return df.sort_values(["rank", "key"], ignore_index=True)

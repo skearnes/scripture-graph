@@ -27,7 +27,7 @@ else
 fi
 # Format python.
 if ! command -v black &> /dev/null; then
-  pip install black
+  pip install black[jupyter]
 fi
 black "${ROOT_DIR}"
 # Format javascript.

@@ -16,4 +16,4 @@
 from setuptools import find_packages
 from setuptools import setup
 
-setup(name='scripture-graph', packages=find_packages())
+setup(name="scripture-graph", packages=find_packages())

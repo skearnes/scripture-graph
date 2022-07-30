@@ -38,34 +38,34 @@ def main(**kwargs):
         suggested = set()
         for source, target in graph.in_edges(verse):
             assert target == verse
-            kind = graph.edges[(source, target)].get('kind')
+            kind = graph.edges[(source, target)].get("kind")
             if kind:
                 suggested.add(source)
             else:
                 incoming.add(source)
         for source, target in graph.out_edges(verse):
             assert source == verse
-            kind = graph.edges[(source, target)].get('kind')
+            kind = graph.edges[(source, target)].get("kind")
             if kind:
                 suggested.add(target)
             else:
                 outgoing.add(target)
         data = graph.nodes[verse]
         connections[verse] = {
-            'volume': data['volume'],
-            'book': data['book'],
-            'chapter': data['chapter'],
-            'verse': data['verse'],
+            "volume": data["volume"],
+            "book": data["book"],
+            "chapter": data["chapter"],
+            "verse": data["verse"],
         }
         if incoming:
-            connections[verse]['incoming'] = list(incoming)
+            connections[verse]["incoming"] = list(incoming)
         if outgoing:
-            connections[verse]['outgoing'] = list(outgoing)
+            connections[verse]["outgoing"] = list(outgoing)
         if suggested:
-            connections[verse]['suggested'] = list(suggested)
-    with open(kwargs["--output"], 'w', encoding="utf-8") as f:
+            connections[verse]["suggested"] = list(suggested)
+    with open(kwargs["--output"], "w", encoding="utf-8") as f:
         json.dump(connections, f, indent=2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(**docopt.docopt(__doc__))
