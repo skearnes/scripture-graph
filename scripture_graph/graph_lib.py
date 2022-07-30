@@ -267,7 +267,7 @@ def parse_reference(text: str) -> List[str]:
     replacements = {
         r'D&C 13[\.;]': 'D&C 13:1',  # One-verse section.
         r'D&C 116[\.;]': 'D&C 116:1',  # One-verse section.
-        u'\xa0': ' ',  # Non-breaking space.
+        '\xa0': ' ',  # Non-breaking space.
         'Song ': 'Song. ',  # Inconsistent abbreviation.
         # Chapter references.
         'Lam. 1–5; ': '',
@@ -356,7 +356,7 @@ def read_topic(tree, source) -> List[Reference]:
     prefix = source.split()[0]
     if others and not re.search(other_pattern, ''.join(others[0].itertext())):
         text = ''.join(others[0].itertext())
-        text = re.sub(u'\xa0', ' ', text)
+        text = re.sub('\xa0', ' ', text)
         match = re.fullmatch(r'See (?:also )?(.*?)\.?', text)
         if not match:
             raise ValueError(
@@ -547,7 +547,7 @@ def write_tree(graph: nx.Graph, filename: str):
             'folder': True,
             'children': volume_children
         })
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding="utf-8") as f:
         json.dump(source, f, indent=2)
 
 

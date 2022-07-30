@@ -50,7 +50,7 @@ def write_graph(graph: nx.Graph, filename: str):
     elif filename.endswith('.graphml'):
         nx.write_graphml(graph, filename)
     elif filename.endswith('.json'):
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding="utf-8") as f:
             json.dump(nx.node_link_data(graph), f)
     else:
         raise NotImplementedError(filename)
