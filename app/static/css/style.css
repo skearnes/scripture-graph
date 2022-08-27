@@ -36,24 +36,9 @@ a:active {
     color: blue;
 }
 
-#container {
-    display: grid;
-    grid-template-columns: 235px 500px 300px;
-    grid-column-gap: 10px;
-    grid-row-gap: 10px;
-}
-
 #header {
-    grid-row: 1;
-    grid-column-start: 1;
-    grid-column-end: 4;
-    padding: 10px;
     background-color: #4a86e8ff;
     color: white;
-}
-
-#header h1, p {
-    margin: 0;
 }
 
 #header a:link {
@@ -74,20 +59,10 @@ a:active {
     color: #ffd966ff;
 }
 
-#tree {
-    grid-row: 2;
-    grid-column: 1;
-}
-
-#graph {
-    grid-row: 2;
-    grid-column: 2;
-}
-
 #cy {
     width: auto;
-    height: 500px;
-    border: solid 1px black;
+    height: 600px;
+    border: solid 1px lightgray;
 }
 
 #cy_help {
@@ -95,27 +70,18 @@ a:active {
 }
 
 #table {
-    grid-row: 2;
-    grid-column: 3;
-    height: 500px;
+    height: 600px;
     overflow: auto;
-}
-
-#table-content {
-    padding: 10px;
 }
 
 /* See http://wwwendt.de/tech/fancytree/demo/sample-scroll.html. */
 ul.fancytree-container {
-    height: 495px;
+    height: 600px;
     overflow: auto;
     font-size: medium;
-    border: solid 1px black;
+    border: solid 1px lightgray;
 }
 
 #footer {
-    grid-row: 3;
-    grid-column-start: 1;
-    grid-column-end: 4;
     font-size: small;
 }
