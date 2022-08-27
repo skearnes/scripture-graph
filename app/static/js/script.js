@@ -137,6 +137,7 @@ function initGraph(verse) {
       {
         selector : 'node',
         css : {
+          'font-family': ['Verdana', 'Helvetica', 'sans-serif'],
           'font-weight' : 'normal',
           'background-opacity' : 1.0,
           'font-size' : 12,
