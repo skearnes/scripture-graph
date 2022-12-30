@@ -43,8 +43,10 @@ BOOK_ORDER = dict(
     )
 )
 
+
 class FilterMode(enum.Enum):
     """Edge filter mode."""
+
     ALL = enum.auto()
     INCOMING = enum.auto()
     OUTGOING = enum.auto()
@@ -91,7 +93,13 @@ def _get_elements(verse: str, filter_mode: FilterMode, include_suggested: bool) 
     unique_nodes.update(incoming | outgoing | suggested)
     nodes = []
     for node in unique_nodes:
-        if node == verse or (filter_mode == FilterMode.ALL and (node in incoming or node in outgoing)) or (filter_mode == FilterMode.INCOMING and node in incoming) or (filter_mode == FilterMode.OUTGOING and node in outgoing) or (include_suggested and node in suggested):
+        if (
+            node == verse
+            or (filter_mode == FilterMode.ALL and (node in incoming or node in outgoing))
+            or (filter_mode == FilterMode.INCOMING and node in incoming)
+            or (filter_mode == FilterMode.OUTGOING and node in outgoing)
+            or (include_suggested and node in suggested)
+        ):
             keep = True
         else:
             keep = False
@@ -107,7 +115,7 @@ def _get_elements(verse: str, filter_mode: FilterMode, include_suggested: bool) 
                     "id": f"{verse} <- {source}",
                     "source": source,
                     "target": verse,
-                    "kind": "in",
+                    "kind": "incoming",
                     "keep": filter_mode in {FilterMode.ALL, FilterMode.INCOMING},
                 }
             }
@@ -119,7 +127,7 @@ def _get_elements(verse: str, filter_mode: FilterMode, include_suggested: bool) 
                     "id": f"{verse} -> {target}",
                     "source": verse,
                     "target": target,
-                    "kind": "out",
+                    "kind": "outgoing",
                     "keep": filter_mode in {FilterMode.ALL, FilterMode.OUTGOING},
                 }
             }

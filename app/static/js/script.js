@@ -121,10 +121,10 @@ function getElements(verse) {
   const filter_mode = $('input:radio[name="edgeFilterMode"]:checked').val();
   const include_suggested = $('#includeSuggested')[0].checked;
   const data = {
-    verse: verse,
-    filter_mode: filter_mode,
-    include_suggested: include_suggested,
-  }
+    verse : verse,
+    filter_mode : filter_mode,
+    include_suggested : include_suggested,
+  };
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/elements');
@@ -154,7 +154,7 @@ function initGraph(verse) {
       {
         selector : 'node',
         css : {
-          'font-family': ['Verdana', 'Helvetica', 'sans-serif'],
+          'font-family' : [ 'Verdana', 'Helvetica', 'sans-serif' ],
           'font-weight' : 'normal',
           'background-opacity' : 1.0,
           'font-size' : 12,
@@ -177,39 +177,45 @@ function initGraph(verse) {
         css : {
           'width' : 1.0,
           'text-opacity' : 1.0,
+          'line-style' : 'solid',
+          'opacity' : 1.0,
+          'font-size' : 10,
+          'font-weight' : 'normal',
+          'curve-style' : 'straight',
           'target-arrow-color' : 'rgb(0,204,255)',
           'line-color' : 'rgb(0,204,255)',
           'source-arrow-color' : 'rgb(0,204,255)',
-          'line-style' : 'solid',
-          'source-arrow-shape' : 'none',
-          'opacity' : 1.0,
-          'font-size' : 10,
+          'source-arrow-shape' : 'triangle',
           'target-arrow-shape' : 'triangle',
-          'font-weight' : 'normal',
-          'curve-style' : 'straight'
+        }
+      },
+      {
+        selector : 'edge[kind="incoming"]',
+        css : {
+          'source-arrow-shape' : 'none',
+          'target-arrow-shape' : 'triangle',
+        }
+      },
+      {
+        selector : 'edge[kind="outgoing"]',
+        css : {
+          'source-arrow-shape' : 'none',
+          'target-arrow-shape' : 'triangle',
         }
       },
       {
         selector : 'edge[kind="suggested"]',
         css : {
-          'width' : 1.0,
-          'text-opacity' : 1.0,
           'target-arrow-color' : 'rgb(255,179,0)',
           'line-color' : 'rgb(255,179,0)',
           'source-arrow-color' : 'rgb(255,179,0)',
           'line-style' : 'dashed',
-          'source-arrow-shape' : 'triangle',
-          'opacity' : 1.0,
-          'font-size' : 10,
-          'target-arrow-shape' : 'triangle',
-          'font-weight' : 'normal',
-          'curve-style' : 'straight'
         }
       },
       {
-        selector: 'node[hide]',
-        css: {
-          'color': 'rgb(220,220,220)',
+        selector : 'node[hide]',
+        css : {
+          'color' : 'rgb(220,220,220)',
         }
       },
       {
@@ -240,7 +246,7 @@ function initGraph(verse) {
       updateQuery(verse);
     }
   });
-  $('input:radio[name="edgeFilterMode"]').each(function () {
+  $('input:radio[name="edgeFilterMode"]').each(function() {
     $(this).on('change', function() {
       const verse = getVerse();
       updateGraph(verse);
