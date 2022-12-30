@@ -27,6 +27,7 @@ setup(
         "networkx>=2.5",
         "numpy>=1.19.2",
         "pandas>=1.1.5",
+        "scipy>=1.9.3",
         "seaborn>=0.11.1",
         "tensorflow>=2.4.1",
         "tensorflow-hub>=0.11.0",

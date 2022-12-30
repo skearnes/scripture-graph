@@ -31,6 +31,17 @@ function initExplorer() {
     updateTree(verse);
     updateTable(verse);
   };
+  const verse = getVerse();
+  initTree(verse);
+  initGraph(verse);
+  updateTable(verse);
+}
+
+/**
+ * Fetches the current verse.
+ * @return {string}
+ */
+function getVerse() {
   const queryParams = new URLSearchParams(window.location.search);
   let verse;
   if (queryParams.has('verse')) {
@@ -38,9 +49,7 @@ function initExplorer() {
   } else {
     verse = 'John 3:16';
   }
-  initTree(verse);
-  initGraph(verse);
-  updateTable(verse);
+  return verse;
 }
 
 /**
@@ -109,18 +118,26 @@ function updateTree(verse) {
  * @return {!Promise<Object>}
  */
 function getElements(verse) {
+  const filter_mode = $('input:radio[name="edgeFilterMode"]:checked').val();
+  const include_suggested = $('#includeSuggested')[0].checked;
+  const data = {
+    verse : verse,
+    filter_mode : filter_mode,
+    include_suggested : include_suggested,
+  };
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/elements');
+    xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.responseType = 'json';
     xhr.onload = function() {
       if (xhr.status === 200) {
         resolve(xhr.response);
       } else {
-        reject(verse);
+        reject(JSON.stringify(data));
       }
     };
-    xhr.send(verse);
+    xhr.send(JSON.stringify(data));
   });
 }
 
@@ -137,7 +154,7 @@ function initGraph(verse) {
       {
         selector : 'node',
         css : {
-          'font-family': ['Verdana', 'Helvetica', 'sans-serif'],
+          'font-family' : [ 'Verdana', 'Helvetica', 'sans-serif' ],
           'font-weight' : 'normal',
           'background-opacity' : 1.0,
           'font-size' : 12,
@@ -160,33 +177,53 @@ function initGraph(verse) {
         css : {
           'width' : 1.0,
           'text-opacity' : 1.0,
+          'line-style' : 'solid',
+          'opacity' : 1.0,
+          'font-size' : 10,
+          'font-weight' : 'normal',
+          'curve-style' : 'straight',
           'target-arrow-color' : 'rgb(0,204,255)',
           'line-color' : 'rgb(0,204,255)',
           'source-arrow-color' : 'rgb(0,204,255)',
-          'line-style' : 'solid',
-          'source-arrow-shape' : 'none',
-          'opacity' : 1.0,
-          'font-size' : 10,
+          'source-arrow-shape' : 'triangle',
           'target-arrow-shape' : 'triangle',
-          'font-weight' : 'normal',
-          'curve-style' : 'straight'
         }
       },
       {
-        selector : 'edge[kind]',
+        selector : 'edge[kind="incoming"]',
         css : {
-          'width' : 1.0,
-          'text-opacity' : 1.0,
+          'source-arrow-shape' : 'none',
+          'target-arrow-shape' : 'triangle',
+        }
+      },
+      {
+        selector : 'edge[kind="outgoing"]',
+        css : {
+          'source-arrow-shape' : 'none',
+          'target-arrow-shape' : 'triangle',
+        }
+      },
+      {
+        selector : 'edge[kind="suggested"]',
+        css : {
           'target-arrow-color' : 'rgb(255,179,0)',
           'line-color' : 'rgb(255,179,0)',
           'source-arrow-color' : 'rgb(255,179,0)',
           'line-style' : 'dashed',
-          'source-arrow-shape' : 'triangle',
-          'opacity' : 1.0,
-          'font-size' : 10,
-          'target-arrow-shape' : 'triangle',
-          'font-weight' : 'normal',
-          'curve-style' : 'straight'
+        }
+      },
+      {
+        selector : 'node[hide]',
+        css : {
+          'color' : 'rgb(220,220,220)',
+        }
+      },
+      {
+        selector : 'edge[hide]',
+        css : {
+          'target-arrow-color' : 'rgb(220,220,220)',
+          'line-color' : 'rgb(220,220,220)',
+          'source-arrow-color' : 'rgb(220,220,220)',
         }
       },
     ],
@@ -209,6 +246,16 @@ function initGraph(verse) {
       updateQuery(verse);
     }
   });
+  $('input:radio[name="edgeFilterMode"]').each(function() {
+    $(this).on('change', function() {
+      const verse = getVerse();
+      updateGraph(verse);
+    })
+  });
+  $('#includeSuggested').on('change', function() {
+    const verse = getVerse();
+    updateGraph(verse);
+  });
   updateQuery(verse);
 }
 
@@ -219,6 +266,7 @@ function initGraph(verse) {
  */
 async function updateGraph(verse, clear = true) {
   const elements = await getElements(verse);
+  console.log(elements);
   if (clear) {
     cy.remove('*');
   }

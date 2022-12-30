@@ -65,6 +65,10 @@ a:active {
     border: solid 1px lightgray;
 }
 
+#edge_filters {
+    text-align: center;
+}
+
 #cy_help {
     text-align: center;
 }
