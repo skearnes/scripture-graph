@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Flask application for serving the cross-reference graph."""
-
+import enum
 import itertools
 import json
 import logging
@@ -43,6 +43,12 @@ BOOK_ORDER = dict(
     )
 )
 
+class FilterMode(enum.Enum):
+    """Edge filter mode."""
+    ALL = enum.auto()
+    INCOMING = enum.auto()
+    OUTGOING = enum.auto()
+
 
 def load_connections() -> dict[str, dict[str, Union[int, str, list[str]]]]:
     """Loads the static set of connections."""
@@ -53,71 +59,102 @@ def load_connections() -> dict[str, dict[str, Union[int, str, list[str]]]]:
 CONNECTIONS = load_connections()
 
 
-def get_edges(verse: str) -> tuple[list[str], list[str], list[str]]:
+def get_edges(verse: str) -> tuple[set[str], set[str], set[str]]:
     """Fetches the incoming and outgoing edges for a verse."""
     data = CONNECTIONS[verse]
     incoming = data.get("incoming", [])
     outgoing = data.get("outgoing", [])
     suggested = data.get("suggested", [])
-    return incoming, outgoing, suggested
+    return set(incoming), set(outgoing), set(suggested)
 
 
 @app.route("/elements", methods=["POST"])
 def get_elements() -> str:
     """Fetches the neighborhood around a verse."""
-    verse = flask.request.get_data(as_text=True)
-    elements = _get_elements(verse)
+    data = flask.request.get_json()
+    data["filter_mode"] = FilterMode[data["filter_mode"].upper()]
+    elements = _get_elements(**data)
     num_nodes = len(elements["nodes"])
     num_edges = len(elements["edges"])
-    app.logger.info(f"Fetched {num_nodes} nodes and {num_edges} edges for {verse}")
+    app.logger.info(f"Fetched {num_nodes} nodes and {num_edges} edges for {data}")
     return flask.jsonify(elements)
 
 
-def _get_elements(verse: str) -> Elements:
-    """Fetches the neighborhood around a verse."""
+def _get_elements(verse: str, filter_mode: FilterMode, include_suggested: bool) -> Elements:
+    """Renders the neighborhood around a verse."""
     unique_nodes = {verse}
     incoming, outgoing, suggested = get_edges(verse)
-    unique_nodes.update(incoming)
-    unique_nodes.update(outgoing)
-    unique_nodes.update(suggested)
+    # NOTE(skearnes): We drop suggested nodes if they are not requested. Filtered-out nodes
+    # are still drawn but are deemphasized for visual clarity.
+    if not include_suggested:
+        suggested.clear()
+    unique_nodes.update(incoming | outgoing | suggested)
     nodes = []
     for node in unique_nodes:
-        nodes.append({"data": {"id": node}})
+        if node == verse or (filter_mode == FilterMode.ALL and (node in incoming or node in outgoing)) or (filter_mode == FilterMode.INCOMING and node in incoming) or (filter_mode == FilterMode.OUTGOING and node in outgoing) or (include_suggested and node in suggested):
+            keep = True
+        else:
+            keep = False
+        nodes.append({"data": {"id": node, "keep": keep}})
+    in_only = incoming - outgoing
+    out_only = outgoing - incoming
+    both = incoming & outgoing
     edges = []
-    for source in incoming:
+    for source in in_only:
         edges.append(
             {
                 "data": {
-                    "id": f"{source} -> {verse}",
+                    "id": f"{verse} <- {source}",
                     "source": source,
                     "target": verse,
+                    "kind": "in",
+                    "keep": filter_mode in {FilterMode.ALL, FilterMode.INCOMING},
                 }
             }
         )
-    for target in outgoing:
+    for target in out_only:
         edges.append(
             {
                 "data": {
                     "id": f"{verse} -> {target}",
                     "source": verse,
                     "target": target,
+                    "kind": "out",
+                    "keep": filter_mode in {FilterMode.ALL, FilterMode.OUTGOING},
+                }
+            }
+        )
+    for other in both:
+        edges.append(
+            {
+                "data": {
+                    "id": f"{verse} <-> {other}",
+                    "source": verse,
+                    "target": other,
+                    "kind": "both",
+                    "keep": True,
                 }
             }
         )
     for node in suggested:
-        # NOTE(kearnes): Only add the edge in one direction to avoid overlapping
-        # lines in the graph display. The edge[kind] selector adds arrows at
-        # both ends of this edge so it appears bidirectional.
         edges.append(
             {
                 "data": {
-                    "id": f"{verse} -> {node}",
+                    "id": f"{verse} <?> {node}",
                     "source": verse,
                     "target": node,
                     "kind": "suggested",
+                    "keep": include_suggested,
                 }
             }
         )
+    # Use attribute presence for matching in CSS.
+    for node in nodes:
+        if not node["data"]["keep"]:
+            node["data"]["hide"] = True
+    for edge in edges:
+        if not edge["data"]["keep"]:
+            edge["data"]["hide"] = True
     return {"nodes": nodes, "edges": edges}
 
 

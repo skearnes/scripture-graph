@@ -58,6 +58,25 @@
         <div id="tree" class="col"></div>
         <div id="graph" class="col-6">
             <div id="cy"></div>
+            <div id="edge_filters">
+                Show:
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="edgeFilterMode" id="inlineRadio1" value="incoming">
+                    <label class="form-check-label" for="inlineRadio1">incoming</label>
+                </div>
+                    <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="edgeFilterMode" id="inlineRadio2" value="outgoing">
+                    <label class="form-check-label" for="inlineRadio2">outgoing</label>
+                </div>
+                    <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="edgeFilterMode" id="inlineRadio3" value="all" checked>
+                    <label class="form-check-label" for="inlineRadio3">all</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="includeSuggested" value="suggested" checked>
+                    <label class="form-check-label" for="inlineCheckbox1">suggested</label>
+                </div>
+            </div>
             <div id="cy_help"><b>(Click on a verse to re-focus the graph.)</b></div>
         </div>
         <div id="table" class="col"></div>
