@@ -74,8 +74,11 @@ def get_edges(verse: str) -> tuple[set[str], set[str], set[str]]:
 def get_elements() -> str:
     """Fetches the neighborhood around a verse."""
     data = flask.request.get_json()
-    data["filter_mode"] = FilterMode[data["filter_mode"].upper()]
-    elements = _get_elements(**data)
+    elements = _get_elements(
+        verse=flask.escape(data["verse"]),
+        filter_mode=FilterMode[data["filter_mode"].upper()],
+        include_suggested=data["include_suggested"],
+    )
     num_nodes = len(elements["nodes"])
     num_edges = len(elements["edges"])
     app.logger.info(f"Fetched {num_nodes} nodes and {num_edges} edges for {data}")
