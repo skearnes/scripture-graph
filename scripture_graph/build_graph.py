@@ -83,11 +83,11 @@ def main(**kwargs) -> None:
             graph.add_edge(reference.source, reference.target)
     if duplicated_edges:
         logger.info(f"ignored {duplicated_edges} duplicated edges")
-    logger.info(nx.info(graph))
+    logger.info(nx.info(graph))  # pylint: disable=no-member
     if kwargs["--suggested"]:
         graph_lib.add_jaccard_edges(graph)
         graph_lib.add_use_edges(graph, float(kwargs["--threshold"]))
-        logger.info(nx.info(graph))
+        logger.info(nx.info(graph))  # pylint: disable=no-member
     write_graph(graph, kwargs["--output"])
     if kwargs["--tree"]:
         graph_lib.write_tree(graph, kwargs["--tree"])
