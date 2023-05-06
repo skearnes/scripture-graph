@@ -18,8 +18,8 @@ set -ex
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 # Add missing license headers.
 if command -v go &> /dev/null; then
-  go get github.com/google/addlicense
-  go run github.com/google/addlicense \
+  go install github.com/google/addlicense@latest
+  "${HOME}/go/bin/addlicense" \
     -c "Steven Kearnes" \
     -l apache "${ROOT_DIR}"
 else
