@@ -12,8 +12,7 @@ Visit https://graph.welding-links.org to explore cross-references in an interact
 # Install the package.
 git clone https://github.com/skearnes/scripture-graph.git
 cd scripture-graph
-pip install -r requirements.txt
-python setup.py install
+pip install .
 # Download Standard Works EPUB files.
 ./download_epub.sh
 # Generate a graph.

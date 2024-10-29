@@ -657,9 +657,9 @@ def jaccard(graph: nx.Graph) -> np.ndarray:
         N x N similarity matrix.
     """
     adjacency_matrix = nx.adjacency_matrix(graph)
-    ab = adjacency_matrix @ adjacency_matrix.T
+    ab = (adjacency_matrix @ adjacency_matrix.T).todense()
     assert ab.shape == (graph.number_of_nodes(), graph.number_of_nodes())
-    aa = adjacency_matrix.sum(axis=1)
+    aa = np.expand_dims(adjacency_matrix.sum(axis=1), axis=-1)
     assert aa.shape == (graph.number_of_nodes(), 1)
     bb = aa.T
     assert bb.shape == (1, graph.number_of_nodes())

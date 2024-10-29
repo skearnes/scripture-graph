@@ -34,6 +34,7 @@ import networkx as nx
 
 from scripture_graph import graph_lib
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -83,11 +84,11 @@ def main(**kwargs) -> None:
             graph.add_edge(reference.source, reference.target)
     if duplicated_edges:
         logger.info(f"ignored {duplicated_edges} duplicated edges")
-    logger.info(nx.info(graph))  # pylint: disable=no-member
+    logger.info(f"N={graph.number_of_nodes()}, E={graph.number_of_edges()}")
     if kwargs["--suggested"]:
         graph_lib.add_jaccard_edges(graph)
         graph_lib.add_use_edges(graph, float(kwargs["--threshold"]))
-        logger.info(nx.info(graph))  # pylint: disable=no-member
+        logger.info(f"N={graph.number_of_nodes()}, E={graph.number_of_edges()}")
     write_graph(graph, kwargs["--output"])
     if kwargs["--tree"]:
         graph_lib.write_tree(graph, kwargs["--tree"])
