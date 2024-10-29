@@ -20,6 +20,7 @@ from typing import Union
 from urllib import parse
 
 import flask
+from markupsafe import escape
 
 import scripture_graph
 
@@ -75,7 +76,7 @@ def get_elements() -> str:
     """Fetches the neighborhood around a verse."""
     data = flask.request.get_json()
     elements = _get_elements(
-        verse=flask.escape(data["verse"]),
+        verse=str(escape(data["verse"])).replace("D&amp;C", "D&C"),
         filter_mode=FilterMode[data["filter_mode"].upper()],
         include_suggested=data["include_suggested"],
     )
